@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [ "Saintapedia contributors" ]
+	},
+	"saintapediasort-desc": "Adds a sidebar layout, active-filter chips, and mobile toggle to Cargo's Special:Drilldown.",
+	"saintapediasort-show-filters": "Show filters",
+	"saintapediasort-hide-filters": "Hide filters",
+	"saintapediasort-clear-filters": "Clear all filters",
+	"saintapediasort-remove-filter": "Remove filter"
+}

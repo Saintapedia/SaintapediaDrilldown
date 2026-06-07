@@ -1,0 +1,171 @@
+/* ==========================================================================
+   SaintapediaSort — Sidebar layout for Cargo's Special:Drilldown
+   All rules are scoped to .cargo-drilldown-layout (added by JS) so they
+   never affect any other page.
+   ========================================================================== */
+
+.cargo-drilldown-layout {
+	--cargo-sidebar-width: 280px;
+	--cargo-gap:           1.5em;
+	--cargo-filter-bg:     #f8f9fa;
+	--cargo-filter-border: #a2a9b1;
+	--cargo-chip-bg:       #ffffff;
+	--cargo-chip-border:   #72a0c1;
+	--cargo-chip-text:     #0645ad;
+	--cargo-toggle-bg:     #3680b0;
+	--cargo-toggle-text:   #ffffff;
+	--cargo-active-bar-bg: #eaf3fb;
+}
+
+/* 1. Flex container */
+.cargo-drilldown-layout {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	gap: var( --cargo-gap );
+	margin-top: 0.5em;
+}
+
+/* 2. Filter sidebar */
+.cargo-drilldown-layout .drilldown-filters-wrapper {
+	flex: 0 0 var( --cargo-sidebar-width );
+	max-width: calc( var( --cargo-sidebar-width ) + 40px );
+	background: var( --cargo-filter-bg );
+	border: 1px solid var( --cargo-filter-border );
+	border-radius: 3px;
+	padding: 0.65em 0.8em;
+	box-sizing: border-box;
+}
+
+@media ( min-width: 720px ) {
+	.cargo-drilldown-layout .drilldown-filters-wrapper.cargo-filters-sticky {
+		position: sticky;
+		top: 0.75em;
+		max-height: calc( 100dvh - 1.5em );
+		overflow-y: auto;
+		scrollbar-width: thin;
+		scrollbar-color: var( --cargo-filter-border ) transparent;
+	}
+
+	.cargo-drilldown-layout .drilldown-filters-wrapper.cargo-filters-sticky::-webkit-scrollbar {
+		width: 5px;
+	}
+
+	.cargo-drilldown-layout .drilldown-filters-wrapper.cargo-filters-sticky::-webkit-scrollbar-thumb {
+		background: var( --cargo-filter-border );
+		border-radius: 3px;
+	}
+}
+
+/* 3. Results area */
+.cargo-drilldown-layout .drilldown-results {
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+/* 4. Active-filter chips bar */
+.cargo-active-filters {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.35em;
+	margin-bottom: 0.75em;
+	padding: 0.45em 0.65em;
+	background: var( --cargo-active-bar-bg );
+	border: 1px solid var( --cargo-filter-border );
+	border-radius: 3px;
+	font-size: 0.875em;
+}
+
+.cargo-active-filters:empty { display: none; }
+
+.cargo-filter-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25em;
+	padding: 0.15em 0.45em;
+	background: var( --cargo-chip-bg );
+	border: 1px solid var( --cargo-chip-border );
+	border-radius: 3px;
+	color: var( --cargo-chip-text );
+	white-space: nowrap;
+	line-height: 1.4;
+}
+
+.cargo-chip-label { color: inherit; }
+
+a.cargo-chip-remove {
+	display: inline-block;
+	color: #555;
+	font-weight: bold;
+	text-decoration: none;
+	line-height: 1;
+	padding: 0 2px;
+	cursor: pointer;
+}
+
+a.cargo-chip-remove:hover,
+a.cargo-chip-remove:focus {
+	color: #cc0000;
+	text-decoration: none;
+}
+
+.cargo-clear-all { margin-left: auto; white-space: nowrap; }
+.cargo-clear-all a { color: #555; font-size: 0.9em; }
+.cargo-clear-all a:hover { color: #cc0000; }
+
+/* 5. Mobile toggle button */
+.cargo-filters-toggle {
+	display: none;
+	width: 100%;
+	padding: 0.5em 0.9em;
+	background: var( --cargo-toggle-bg );
+	color: var( --cargo-toggle-text );
+	border: none;
+	border-radius: 3px;
+	cursor: pointer;
+	font-size: 1em;
+	text-align: left;
+}
+
+.cargo-filters-toggle:hover { filter: brightness( 1.1 ); }
+
+/* 6. Filter section polish */
+.cargo-drilldown-layout .drilldown-filter .drilldown-filter-label {
+	font-weight: bold;
+	padding-bottom: 0.2em;
+	border-bottom: 1px solid #ddd;
+	margin-bottom: 0.3em;
+}
+
+.cargo-drilldown-layout .drilldown-filter-values { word-break: break-word; }
+
+/* 7. Responsive — narrow viewports */
+@media ( max-width: 719px ) {
+	.cargo-drilldown-layout { flex-direction: column; }
+
+	.cargo-drilldown-layout .drilldown-results {
+		order: 1;
+		width: 100%;
+	}
+
+	.cargo-drilldown-layout .drilldown-filters-wrapper {
+		order: 2;
+		flex: none;
+		width: 100%;
+		max-width: none;
+		position: static;
+		max-height: none;
+		overflow: visible;
+	}
+
+	.cargo-drilldown-layout .drilldown-filters-wrapper.cargo-filters-collapsed {
+		display: none;
+	}
+
+	.cargo-filters-toggle {
+		display: block;
+		order: 2;
+		margin-top: 0.5em;
+	}
+}

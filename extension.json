@@ -1,0 +1,68 @@
+{
+	"name": "SaintapediaSort",
+	"version": "0.1.0",
+	"author": [ "Saintapedia contributors" ],
+	"url": "https://github.com/Saintapedia/SaintapediaSearch",
+	"descriptionmsg": "saintapediasort-desc",
+	"license-name": "MIT",
+	"type": "other",
+	"requires": {
+		"MediaWiki": ">= 1.39.0",
+		"extensions": {
+			"Cargo": "*"
+		}
+	},
+	"AutoloadNamespaces": {
+		"MediaWiki\\Extension\\SaintapediaSort\\": "includes/"
+	},
+	"HookHandlers": {
+		"main": {
+			"class": "MediaWiki\\Extension\\SaintapediaSort\\Hooks",
+			"services": [ "MainConfig" ]
+		}
+	},
+	"Hooks": {
+		"BeforePageDisplay": "main"
+	},
+	"ResourceModules": {
+		"ext.SaintapediaSort": {
+			"styles": [ "modules/ext.SaintapediaSort.css" ],
+			"scripts": [ "modules/ext.SaintapediaSort.js" ],
+			"dependencies": [ "mediawiki.util" ],
+			"targets": [ "desktop", "mobile" ],
+			"messages": [
+				"saintapediasort-show-filters",
+				"saintapediasort-hide-filters",
+				"saintapediasort-clear-filters",
+				"saintapediasort-remove-filter"
+			]
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "",
+		"remoteExtPath": "SaintapediaSort"
+	},
+	"config": {
+		"SaintapediaSortSidebarEnabled": {
+			"value": true,
+			"description": "Enable the sidebar (flex) layout for Special:Drilldown. Set false to disable entirely and fall back to Cargo defaults."
+		},
+		"SaintapediaSortSidebarWidth": {
+			"value": 280,
+			"description": "Width of the filter sidebar in pixels (desktop)."
+		},
+		"SaintapediaSortShowFilterChips": {
+			"value": true,
+			"description": "Show active-filter chips above the results area."
+		},
+		"SaintapediaSortStickyFilters": {
+			"value": true,
+			"description": "Make the filter sidebar sticky while the user scrolls results."
+		},
+		"SaintapediaSortMobileBreakpoint": {
+			"value": 720,
+			"description": "Viewport width (px) below which the layout switches to stacked / mobile mode."
+		}
+	},
+	"manifest_version": 2
+}
