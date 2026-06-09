@@ -6,7 +6,9 @@
  *    DOM parent Cargo places them in.
  * 2. Renders active-filter "chips" above the results for quick removal.
  * 3. Adds a mobile toggle button that shows/hides the filter sidebar.
- * 4. Respects PHP config vars forwarded through mw.config.
+ *    Toggle state is persisted in localStorage.
+ * 4. Uses matchMedia to drive mobile layout from cfg.mobileBreak so the
+ *    JS-configurable breakpoint and the CSS breakpoint stay in sync.
  */
 ( function () {
 	'use strict';
@@ -17,6 +19,8 @@
 		stickyFilters: mw.config.get( 'saintapediaSortStickyFilters',    true ),
 		mobileBreak:   mw.config.get( 'saintapediaSortMobileBreakpoint', 720 )
 	};
+
+	var STORAGE_KEY = 'saintapedia-sort-filters-open';
 
 	/* -- URL / filter helpers ------------------------------------------ */
 
@@ -67,7 +71,6 @@
 			wrapper.appendChild( resultsEl );
 			return wrapper;
 		}
-		// Fallback: nearest common ancestor
 		var ancestor = filtersEl.parentElement;
 		while ( ancestor && !ancestor.contains( resultsEl ) ) {
 			ancestor = ancestor.parentElement;
@@ -109,6 +112,13 @@
 
 	/* -- Feature: mobile toggle ---------------------------------------- */
 
+	/**
+	 * Creates the Show/Hide filters button. Returns { setOpen } so the
+	 * breakpoint watcher can force the sidebar open when switching to desktop.
+	 *
+	 * Toggle state is persisted in localStorage so returning visitors see
+	 * the same sidebar state they left.
+	 */
 	function addMobileToggle( filtersEl ) {
 		var btn    = el( 'button', 'cargo-filters-toggle' );
 		var isOpen = false;
@@ -120,13 +130,49 @@
 				: mw.msg( 'saintapediasort-show-filters' );
 			btn.setAttribute( 'aria-expanded', isOpen ? 'true' : 'false' );
 			filtersEl.classList.toggle( 'cargo-filters-collapsed', !isOpen );
+			try { localStorage.setItem( STORAGE_KEY, isOpen ? '1' : '0' ); } catch ( e ) {}
 		}
 
 		filtersEl.id = 'cargo-filter-sidebar';
 		btn.setAttribute( 'aria-controls', 'cargo-filter-sidebar' );
-		setOpen( false );
+
+		// Restore previous state from localStorage
+		var stored;
+		try { stored = localStorage.getItem( STORAGE_KEY ); } catch ( e ) {}
+		setOpen( stored === '1' );
+
 		btn.addEventListener( 'click', function () { setOpen( !isOpen ); } );
 		filtersEl.parentElement.insertBefore( btn, filtersEl );
+
+		return { setOpen: setOpen };
+	}
+
+	/* -- Feature: config-driven mobile breakpoint ---------------------- */
+
+	/**
+	 * Uses matchMedia so cfg.mobileBreak actually controls the layout switch,
+	 * instead of relying solely on the CSS @media fallback (which is fixed at
+	 * the default 720px).
+	 */
+	function initBreakpointWatcher( layoutEl, filtersEl, toggle ) {
+		var mq = window.matchMedia( '(max-width: ' + ( cfg.mobileBreak - 1 ) + 'px)' );
+
+		function onBreakpoint( e ) {
+			layoutEl.classList.toggle( 'cargo-mobile-layout', e.matches );
+			if ( !e.matches ) {
+				// Switching to desktop: always show the sidebar
+				filtersEl.classList.remove( 'cargo-filters-collapsed' );
+				toggle.setOpen( false );
+			}
+		}
+
+		// Support both the modern addEventListener and legacy addListener (Safari < 14)
+		if ( mq.addEventListener ) {
+			mq.addEventListener( 'change', onBreakpoint );
+		} else {
+			mq.addListener( onBreakpoint );
+		}
+		onBreakpoint( mq ); // apply immediately on load
 	}
 
 	/* -- Main init ----------------------------------------------------- */
@@ -141,7 +187,9 @@
 
 		if ( cfg.stickyFilters ) { filtersEl.classList.add( 'cargo-filters-sticky' ); }
 		if ( cfg.showChips )     { renderFilterChips( resultsEl ); }
-		addMobileToggle( filtersEl );
+
+		var toggle = addMobileToggle( filtersEl );
+		initBreakpointWatcher( layoutEl, filtersEl, toggle );
 	}
 
 	mw.hook( 'wikipage.content' ).add( function () {
