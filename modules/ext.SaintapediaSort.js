@@ -2,16 +2,13 @@
  * SaintapediaSort — JavaScript module
  *
  * 1. Wraps .drilldown-filters-wrapper + .drilldown-results in a flex
- *    container so the sidebar layout works regardless of which skin or
- *    DOM parent Cargo places them in. If they do not share a parent the
- *    layout step is skipped gracefully; chip and toggle features still render.
- * 2. Renders active-filter "chips" above the results for quick removal.
- *    URLs are built with mw.util.getUrl() so both short-URL and
- *    index.php?title= wikis work correctly.
- * 3. Adds a mobile toggle button that shows/hides the filter sidebar.
- *    Toggle state is persisted in localStorage only on explicit user action.
- * 4. Uses matchMedia to drive mobile layout from cfg.mobileBreak — JS is
- *    the single source of truth; there is no CSS @media fallback.
+ *    container. If they do not share a parent the layout step is skipped
+ *    gracefully; chip and toggle are not created in that case.
+ * 2. Renders active-filter chips using pure URL helpers (testable, no globals).
+ * 3. Adds a mobile toggle whose state is persisted via mw.storage and only
+ *    written on explicit user action.
+ * 4. Uses matchMedia as the single source of truth for the configured
+ *    breakpoint; static CSS @media covers the no-JS fallback.
  */
 ( function () {
 	'use strict';
@@ -23,16 +20,30 @@
 		mobileBreak:   mw.config.get( 'saintapediaSortMobileBreakpoint', 720 )
 	};
 
-	var STORAGE_KEY = 'saintapedia-sort-filters-open';
+	// Namespace the key per wiki so wikifarm installs don't share state.
+	var STORAGE_KEY = 'saintapediasort-filters-open-' + ( mw.config.get( 'wgWikiID' ) || '' );
+	var storage     = mw.storage;
 
-	/* -- URL / filter helpers ------------------------------------------ */
+	/* -- Pure URL / filter helpers (no globals; exported for unit tests) -- */
+
+	var RESERVED = [
+		'title', 'action', 'uselang', 'useskin', 'useformat',
+		'debug', 'safemode', 'printable', 'variant', 'oldid',
+		'curid', 'redirect', 'veaction', 'mobileaction'
+	];
 
 	function isInternalParam( key ) {
-		return key.charAt( 0 ) === '_' || key === 'title' || key === 'action';
+		return key.charAt( 0 ) === '_' || RESERVED.indexOf( key ) !== -1;
 	}
 
-	function getActiveFilters() {
-		var params  = new URLSearchParams( window.location.search );
+	/**
+	 * Returns filter objects for every non-internal URL param.
+	 *
+	 * @param {string} search  window.location.search or a bare query string
+	 * @return {Array.<{key:string, label:string, value:string}>}
+	 */
+	function getActiveFilters( search ) {
+		var params  = new URLSearchParams( search );
 		var filters = [];
 		params.forEach( function ( val, key ) {
 			if ( isInternalParam( key ) ) { return; }
@@ -44,34 +55,42 @@
 		return filters;
 	}
 
-	function urlParamsToObj( params ) {
-		var obj = {};
-		params.forEach( function ( v, k ) {
-			if ( k === 'title' || k === 'action' ) { return; }
-			if ( Object.prototype.hasOwnProperty.call( obj, k ) ) {
-				obj[ k ] = [].concat( obj[ k ], v );
-			} else {
-				obj[ k ] = v;
-			}
-		} );
-		return obj;
-	}
-
-	function buildRemoveUrl( key, value ) {
-		var params = new URLSearchParams( window.location.search );
+	/**
+	 * Returns a query string with one value removed from key and _offset reset.
+	 * Uses URLSearchParams round-trip so repeated/bracketed keys are preserved
+	 * byte-for-byte without jQuery array serialization artefacts.
+	 *
+	 * @param {string} search
+	 * @param {string} key
+	 * @param {string} value
+	 * @return {string}  query string (no leading '?')
+	 */
+	function buildRemoveSearch( search, key, value ) {
+		var params = new URLSearchParams( search );
 		var kept   = params.getAll( key ).filter( function ( v ) { return v !== value; } );
 		params.delete( key );
 		kept.forEach( function ( v ) { params.append( key, v ); } );
-		return mw.util.getUrl( mw.config.get( 'wgPageName' ), urlParamsToObj( params ) );
+		params.delete( '_offset' );
+		return params.toString();
 	}
 
-	function buildClearUrl() {
-		var kept   = {};
-		var params = new URLSearchParams( window.location.search );
+	/**
+	 * Returns a query string that keeps only internal display params and
+	 * reserved MW params, dropping all filter params and resetting _offset.
+	 *
+	 * @param {string} search
+	 * @return {string}  query string (no leading '?')
+	 */
+	function buildClearSearch( search ) {
+		var params = new URLSearchParams( search );
+		var kept   = new URLSearchParams();
 		params.forEach( function ( v, k ) {
-			if ( k.charAt( 0 ) === '_' ) { kept[ k ] = v; }
+			if ( ( k.charAt( 0 ) === '_' && k !== '_offset' ) ||
+					RESERVED.indexOf( k ) !== -1 ) {
+				kept.append( k, v );
+			}
 		} );
-		return mw.util.getUrl( mw.config.get( 'wgPageName' ), kept );
+		return kept.toString();
 	}
 
 	/* -- DOM helper ---------------------------------------------------- */
@@ -101,7 +120,7 @@
 	/* -- Feature: active-filter chips ---------------------------------- */
 
 	function renderFilterChips( resultsEl ) {
-		var filters = getActiveFilters();
+		var filters = getActiveFilters( window.location.search );
 		if ( !filters.length ) { return; }
 
 		var bar = el( 'div', 'cargo-active-filters' );
@@ -110,13 +129,15 @@
 
 		filters.forEach( function ( f ) {
 			var chip   = el( 'span', 'cargo-filter-chip' );
-			var label  = el( 'span', 'cargo-chip-label', f.label + ': ' + f.value );
+			var text   = el( 'span', 'cargo-chip-label',
+				mw.msg( 'saintapediasort-chip-text', f.label, f.value ) );
+			var qs     = buildRemoveSearch( window.location.search, f.key, f.value );
 			var remove = el( 'a', 'cargo-chip-remove', '×' );
-			remove.href  = buildRemoveUrl( f.key, f.value );
+			remove.href  = window.location.pathname + ( qs ? '?' + qs : '' );
 			remove.title = mw.msg( 'saintapediasort-remove-filter' );
 			remove.setAttribute( 'aria-label',
-				mw.msg( 'saintapediasort-remove-filter' ) + ': ' + f.label + ' = ' + f.value );
-			chip.appendChild( label );
+				mw.msg( 'saintapediasort-remove-filter-aria', f.label, f.value ) );
+			chip.appendChild( text );
 			chip.appendChild( remove );
 			bar.appendChild( chip );
 		} );
@@ -124,7 +145,8 @@
 		if ( filters.length > 1 ) {
 			var clearWrap = el( 'span', 'cargo-clear-all' );
 			var clearLink = el( 'a', '', mw.msg( 'saintapediasort-clear-filters' ) );
-			clearLink.href = buildClearUrl();
+			var cqs       = buildClearSearch( window.location.search );
+			clearLink.href = window.location.pathname + ( cqs ? '?' + cqs : '' );
 			clearWrap.appendChild( clearLink );
 			bar.appendChild( clearWrap );
 		}
@@ -135,13 +157,14 @@
 	/* -- Feature: mobile toggle ---------------------------------------- */
 
 	/**
-	 * Creates the Show/Hide filters button. Returns { setOpen } so the
-	 * breakpoint watcher can update visual state without touching localStorage.
+	 * Creates the Show/Hide filters button and returns { setOpen }.
 	 *
-	 * setOpen( open )        — updates state and persists to localStorage.
-	 * setOpen( open, false ) — updates visual state only; used by the
-	 *                          breakpoint watcher so it never overwrites the
-	 *                          user's last explicit choice.
+	 * setOpen( open )        — updates state and persists to mw.storage.
+	 * setOpen( open, false ) — updates visual state only (breakpoint-watcher
+	 *                          path; never overwrites the user's stored choice).
+	 *
+	 * The button starts in an indeterminate visual state; the first
+	 * onBreakpoint(mq) call in initBreakpointWatcher sets everything.
 	 */
 	function addMobileToggle( filtersEl ) {
 		var btn    = el( 'button', 'cargo-filters-toggle' );
@@ -155,16 +178,16 @@
 			btn.setAttribute( 'aria-expanded', isOpen ? 'true' : 'false' );
 			filtersEl.classList.toggle( 'cargo-filters-collapsed', !isOpen );
 			if ( persist !== false ) {
-				try { localStorage.setItem( STORAGE_KEY, isOpen ? '1' : '0' ); } catch ( ex ) {}
+				storage.set( STORAGE_KEY, isOpen ? '1' : '0' );
 			}
 		}
 
-		if ( !filtersEl.id ) { filtersEl.id = 'cargo-filter-sidebar'; }
+		if ( !filtersEl.id ) {
+			filtersEl.id = document.getElementById( 'cargo-filter-sidebar' ) === null
+				? 'cargo-filter-sidebar'
+				: 'cargo-filter-sidebar-' + Date.now();
+		}
 		btn.setAttribute( 'aria-controls', filtersEl.id );
-
-		var stored;
-		try { stored = localStorage.getItem( STORAGE_KEY ); } catch ( ex ) {}
-		setOpen( stored === '1' );
 
 		btn.addEventListener( 'click', function () { setOpen( !isOpen ); } );
 		filtersEl.parentElement.insertBefore( btn, filtersEl );
@@ -175,10 +198,9 @@
 	/* -- Feature: config-driven mobile breakpoint ---------------------- */
 
 	/**
-	 * JS is the single source of truth for the layout breakpoint.
-	 * All mobile rules key off .cargo-mobile-layout toggled here.
-	 * The breakpoint watcher never writes to localStorage — it calls
-	 * setOpen( open, false ) so the user's stored preference is preserved.
+	 * Drives layout class and toggle state via matchMedia.
+	 * This is the sole authority for the initial toggle state; addMobileToggle
+	 * does not read storage or call setOpen — the first onBreakpoint(mq) does.
 	 */
 	function initBreakpointWatcher( layoutEl, filtersEl, toggle ) {
 		var mq = window.matchMedia( '(max-width: ' + ( cfg.mobileBreak - 1 ) + 'px)' );
@@ -186,17 +208,14 @@
 		function onBreakpoint( e ) {
 			layoutEl.classList.toggle( 'cargo-mobile-layout', e.matches );
 			if ( !e.matches ) {
-				// Desktop: always show the sidebar; do not overwrite stored preference
+				// Desktop: always show the sidebar; do not overwrite stored preference.
 				toggle.setOpen( true, false );
 			} else {
-				// Mobile: restore the user's last explicit choice
-				var mobileStored;
-				try { mobileStored = localStorage.getItem( STORAGE_KEY ); } catch ( ex ) {}
-				toggle.setOpen( mobileStored === '1', false );
+				// Mobile: restore the user's last explicit choice.
+				toggle.setOpen( storage.get( STORAGE_KEY ) === '1', false );
 			}
 		}
 
-		// Support both modern addEventListener and legacy addListener (Safari < 14)
 		if ( mq.addEventListener ) {
 			mq.addEventListener( 'change', onBreakpoint );
 		} else {
@@ -220,21 +239,27 @@
 		filtersEl.dataset.saintapediasortInit = '1';
 
 		var layoutEl = applyFlexLayout( filtersEl, resultsEl );
-		if ( layoutEl ) {
-			layoutEl.style.setProperty( '--cargo-sidebar-width', cfg.sidebarWidth + 'px' );
-		}
+		if ( !layoutEl ) { return; }
 
+		layoutEl.style.setProperty( '--cargo-sidebar-width', cfg.sidebarWidth + 'px' );
 		if ( cfg.stickyFilters ) { filtersEl.classList.add( 'cargo-filters-sticky' ); }
 		if ( cfg.showChips )     { renderFilterChips( resultsEl ); }
 
 		var toggle = addMobileToggle( filtersEl );
-		if ( layoutEl ) {
-			initBreakpointWatcher( layoutEl, filtersEl, toggle );
-		}
+		initBreakpointWatcher( layoutEl, filtersEl, toggle );
 	}
 
 	mw.hook( 'wikipage.content' ).add( function () {
 		init();
 	} );
+
+	// Export pure helpers for unit testing; no-op in MediaWiki environment.
+	if ( typeof module !== 'undefined' && module.exports ) {
+		module.exports = {
+			getActiveFilters: getActiveFilters,
+			buildRemoveSearch: buildRemoveSearch,
+			buildClearSearch: buildClearSearch
+		};
+	}
 
 }() );

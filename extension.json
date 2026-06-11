@@ -1,6 +1,6 @@
 {
 	"name": "SaintapediaSort",
-	"version": "0.1.1",
+	"version": "0.2.0",
 	"author": [ "Saintapedia contributors" ],
 	"url": "https://github.com/Saintapedia/SaintapediaSort",
 	"descriptionmsg": "saintapediasort-desc",
@@ -20,24 +20,27 @@
 	},
 	"HookHandlers": {
 		"main": {
-			"class": "MediaWiki\\Extension\\SaintapediaSort\\Hooks",
-			"services": [ "MainConfig" ]
+			"class": "MediaWiki\\Extension\\SaintapediaSort\\Hooks"
 		}
 	},
 	"Hooks": {
 		"BeforePageDisplay": "main"
 	},
 	"ResourceModules": {
+		"ext.SaintapediaSort.styles": {
+			"styles": [ "modules/ext.SaintapediaSort.css" ]
+		},
 		"ext.SaintapediaSort": {
-			"styles": [ "modules/ext.SaintapediaSort.css" ],
 			"scripts": [ "modules/ext.SaintapediaSort.js" ],
-			"dependencies": [ "mediawiki.util" ],
+			"dependencies": [ "mediawiki.util", "mediawiki.storage" ],
 			"messages": [
 				"saintapediasort-show-filters",
 				"saintapediasort-hide-filters",
 				"saintapediasort-clear-filters",
 				"saintapediasort-remove-filter",
-				"saintapediasort-active-filters"
+				"saintapediasort-active-filters",
+				"saintapediasort-chip-text",
+				"saintapediasort-remove-filter-aria"
 			]
 		}
 	},
@@ -52,7 +55,7 @@
 		},
 		"SaintapediaSortSidebarWidth": {
 			"value": 280,
-			"description": "Width of the filter sidebar in pixels (desktop)."
+			"description": "Width of the filter sidebar in pixels (desktop). Valid range: 120–800."
 		},
 		"SaintapediaSortShowFilterChips": {
 			"value": true,
@@ -64,7 +67,7 @@
 		},
 		"SaintapediaSortMobileBreakpoint": {
 			"value": 720,
-			"description": "Viewport width (px) below which the layout switches to stacked / mobile mode."
+			"description": "Viewport width (px) below which the layout switches to stacked / mobile mode. Valid range: 320–1600."
 		}
 	},
 	"manifest_version": 2

@@ -25,7 +25,7 @@ A [MediaWiki](https://www.mediawiki.org/) extension that modernises the faceted-
 | Dependency | Minimum version | Notes |
 |------------|-----------------|-------|
 | [MediaWiki](https://www.mediawiki.org/wiki/Download) | **1.39** | Uses constructor dependency injection for hooks |
-| [Cargo](https://www.mediawiki.org/wiki/Extension:Cargo) | **>= 3.0** | Provides `Special:Drilldown` and the `.drilldown-filters-wrapper` / `.drilldown-results` DOM elements this extension targets. If a future Cargo release renames these class names, a browser console warning will identify the missing selectors. |
+| [Cargo](https://www.mediawiki.org/wiki/Extension:Cargo) | **>= 3.0** | Provides `Special:Drilldown` and the `.drilldown-filters-wrapper` / `.drilldown-results` DOM class names this extension targets. These are an undocumented contract; a browser console warning identifies missing selectors if Cargo changes them. |
 | PHP | **7.4+** | Compatible with PHP 7.4 and 8.x |
 
 > **Skin compatibility** — tested against Vector (legacy) and Vector 2022. Should work with any skin because the extension locates Cargo's elements by class name rather than a fixed DOM path.
@@ -99,11 +99,11 @@ $wgSaintapediaSortSidebarEnabled = true;
 
 ### `$wgSaintapediaSortSidebarWidth`
 
-| Type | Default |
-|------|---------|
-| `int` (pixels) | `280` |
+| Type | Default | Valid range |
+|------|---------|-------------|
+| `int` (pixels) | `280` | `120`–`800` |
 
-Width of the filter sidebar on desktop viewports. The results area automatically fills the remaining space.
+Width of the filter sidebar on desktop viewports. Values outside the valid range are clamped and a warning is written to the MediaWiki log. The results area automatically fills the remaining space.
 
 ```php
 $wgSaintapediaSortSidebarWidth = 300;
@@ -149,11 +149,11 @@ $wgSaintapediaSortStickyFilters = true;
 
 ### `$wgSaintapediaSortMobileBreakpoint`
 
-| Type | Default |
-|------|---------|
-| `int` (pixels) | `720` |
+| Type | Default | Valid range |
+|------|---------|-------------|
+| `int` (pixels) | `720` | `320`–`1600` |
 
-Viewport width below which the layout switches from side-by-side to stacked. At narrow widths the results move to the top and the filter sidebar is hidden behind a *Show filters* toggle button.
+Viewport width below which the layout switches from side-by-side to stacked. Values outside the valid range are clamped and a warning is written to the MediaWiki log. The no-JS CSS fallback always uses 720 px; custom values require JavaScript. At narrow widths the results move to the top and the filter sidebar is hidden behind a *Show filters* toggle button.
 
 ```php
 $wgSaintapediaSortMobileBreakpoint = 720;

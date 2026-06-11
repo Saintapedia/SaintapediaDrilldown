@@ -7,5 +7,7 @@
 	"saintapediasort-hide-filters": "Hide filters",
 	"saintapediasort-clear-filters": "Clear all filters",
 	"saintapediasort-remove-filter": "Remove filter",
-	"saintapediasort-active-filters": "Active filters"
+	"saintapediasort-active-filters": "Active filters",
+	"saintapediasort-chip-text": "$1: $2",
+	"saintapediasort-remove-filter-aria": "Remove filter $1: $2"
 }

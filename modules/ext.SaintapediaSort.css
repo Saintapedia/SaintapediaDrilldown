@@ -116,7 +116,8 @@ a.cargo-chip-remove:focus-visible {
 	border-radius: 2px;
 }
 
-.cargo-clear-all { margin-left: auto; white-space: nowrap; }
+/* margin-inline-start for RTL support (CSSJanus-safe) */
+.cargo-clear-all { margin-inline-start: auto; white-space: nowrap; }
 .cargo-clear-all a { color: #555; font-size: 0.9em; }
 .cargo-clear-all a:hover { color: #cc0000; }
 
@@ -136,6 +137,11 @@ a.cargo-chip-remove:focus-visible {
 
 .cargo-filters-toggle:hover { filter: brightness( 1.1 ); }
 
+.cargo-filters-toggle:focus-visible {
+	outline: 2px solid #ffffff;
+	outline-offset: -3px;
+}
+
 /* 6. Filter section polish */
 .cargo-drilldown-layout .drilldown-filter .drilldown-filter-label {
 	font-weight: bold;
@@ -146,8 +152,7 @@ a.cargo-chip-remove:focus-visible {
 
 .cargo-drilldown-layout .drilldown-filter-values { word-break: break-word; }
 
-/* 7. Mobile layout — driven entirely by .cargo-mobile-layout (set by JS matchMedia watcher).
-   JS is the single source of truth for the breakpoint; the extension requires JavaScript. */
+/* 7. JS-driven mobile layout — toggled by matchMedia watcher in JS */
 .cargo-drilldown-layout.cargo-mobile-layout {
 	flex-direction: column;
 }
@@ -175,4 +180,38 @@ a.cargo-chip-remove:focus-visible {
 	display: block;
 	order: 2;
 	margin-top: 0.5em;
+}
+
+/* 8. No-JS / pre-JS fallback — mirrors section 7 at the default 720px breakpoint.
+   When $wgSaintapediaSortMobileBreakpoint differs from 720, Hooks.php emits an
+   inline <style> that overrides this block with the configured value. */
+@media ( max-width: 719px ) {
+	.cargo-drilldown-layout {
+		flex-direction: column;
+	}
+
+	.cargo-drilldown-layout .drilldown-results {
+		order: 1;
+		width: 100%;
+	}
+
+	.cargo-drilldown-layout .drilldown-filters-wrapper {
+		order: 2;
+		flex: none;
+		width: 100%;
+		max-width: none;
+		position: static;
+		max-height: none;
+		overflow: visible;
+	}
+
+	.cargo-drilldown-layout .drilldown-filters-wrapper.cargo-filters-collapsed {
+		display: none;
+	}
+
+	.cargo-drilldown-layout .cargo-filters-toggle {
+		display: block;
+		order: 2;
+		margin-top: 0.5em;
+	}
 }

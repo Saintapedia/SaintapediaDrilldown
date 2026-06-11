@@ -7,5 +7,7 @@
 	"saintapediasort-hide-filters": "Label for the mobile button that hides the filter sidebar. Shown when the sidebar is currently visible.",
 	"saintapediasort-clear-filters": "Link label that removes all active filters at once. Appears in the active-filter chips bar when two or more filters are applied.",
 	"saintapediasort-remove-filter": "Tooltip and aria-label on the × button inside each active-filter chip. The chip also shows the filter name and value.",
-	"saintapediasort-active-filters": "Accessible name (aria-label) for the active-filter chips bar. Used as a landmark region label for screen readers."
+	"saintapediasort-active-filters": "Accessible name (aria-label) for the active-filter chips bar. Used as a landmark region label for screen readers.",
+	"saintapediasort-chip-text": "Display text inside each active-filter chip. $1 is the filter name (e.g. \"Category\"), $2 is the selected value (e.g. \"Martyrs\"). Translators may reorder or repunctuate.",
+	"saintapediasort-remove-filter-aria": "Accessible label on the remove (×) button inside each active-filter chip. $1 is the filter name, $2 is the selected value."
 }

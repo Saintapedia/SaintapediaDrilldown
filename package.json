@@ -4,7 +4,8 @@
 	"version": "0.1.1",
 	"private": true,
 	"scripts": {
-		"test": "grunt test"
+		"test": "grunt test && node --test tests/",
+		"unit": "node --test tests/"
 	},
 	"devDependencies": {
 		"eslint-config-wikimedia": "^0.27.0",
