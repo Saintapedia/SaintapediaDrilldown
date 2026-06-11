@@ -8,7 +8,11 @@ global.mw = {
 	hook:    function () { return { add: function () {} }; },
 	config:  { get: function () { return null; } },
 	log:     { warn: function () {} },
-	msg:     function () { return ''; },
+	msg:     function ( key, a, b ) {
+		if ( key === 'saintapediasort-search-filter-label' ) { return a + ' (search)'; }
+		if ( key === 'saintapediasort-range-value' ) { return a + ' → ' + b; }
+		return '';
+	},
 	storage: { get: function () { return null; }, set: function () {} }
 };
 global.window = {

@@ -70,10 +70,10 @@
 				return;
 			}
 
-			// _search_X → label "X (search)"
+			// _search_X → label "X (search)" via i18n
 			var sm = key.match( /^_search_(.+)$/ );
 			var label = sm
-				? sm[ 1 ].replace( /_/g, ' ' ) + ' (search)'
+				? mw.msg( 'saintapediasort-search-filter-label', sm[ 1 ].replace( /_/g, ' ' ) )
 				: key.replace( /_/g, ' ' );
 			filters.push( { key: key, label: label, value: val } );
 		} );
@@ -86,7 +86,9 @@
 				label:      base.replace( /_/g, ' ' ),
 				isFamily:   true,
 				familyKeys: members.map( function ( m ) { return m.key; } ),
-				value:      members.map( function ( m ) { return m.value; } ).join( ' → ' )
+				value:      members.length === 2
+				? mw.msg( 'saintapediasort-range-value', members[ 0 ].value, members[ 1 ].value )
+				: members.map( function ( m ) { return m.value; } ).join( ', ' )
 			} );
 		} );
 

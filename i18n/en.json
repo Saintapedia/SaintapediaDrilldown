@@ -9,5 +9,7 @@
 	"saintapediasort-remove-filter": "Remove filter",
 	"saintapediasort-active-filters": "Active filters",
 	"saintapediasort-chip-text": "$1: $2",
-	"saintapediasort-remove-filter-aria": "Remove filter $1: $2"
+	"saintapediasort-remove-filter-aria": "Remove filter $1: $2",
+	"saintapediasort-search-filter-label": "$1 (search)",
+	"saintapediasort-range-value": "$1 → $2"
 }

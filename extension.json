@@ -32,7 +32,7 @@
 		},
 		"ext.SaintapediaSort": {
 			"scripts": [ "modules/ext.SaintapediaSort.js" ],
-			"dependencies": [ "mediawiki.util", "mediawiki.storage" ],
+			"dependencies": [ "mediawiki.storage" ],
 			"messages": [
 				"saintapediasort-show-filters",
 				"saintapediasort-hide-filters",
@@ -40,7 +40,9 @@
 				"saintapediasort-remove-filter",
 				"saintapediasort-active-filters",
 				"saintapediasort-chip-text",
-				"saintapediasort-remove-filter-aria"
+				"saintapediasort-remove-filter-aria",
+				"saintapediasort-search-filter-label",
+				"saintapediasort-range-value"
 			]
 		}
 	},
