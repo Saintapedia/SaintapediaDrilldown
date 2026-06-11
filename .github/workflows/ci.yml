@@ -11,7 +11,7 @@ jobs:
     name: JS / CSS / i18n lint + unit tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         # TODO: pin to commit SHA — run `gh api repos/actions/checkout/git/refs/tags/v4`
         # and replace @v4 with @<sha> once Dependabot begins managing this.
       - uses: actions/setup-node@v4
@@ -24,7 +24,7 @@ jobs:
     name: PHP lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
