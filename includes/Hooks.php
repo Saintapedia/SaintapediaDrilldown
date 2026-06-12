@@ -1,6 +1,6 @@
 <?php
 /**
- * SaintapediaSort – Hooks.php
+ * SaintapediaDrilldown – Hooks.php
  *
  * Loads the UI-improvement ResourceLoader module on Special:Drilldown
  * (and all sub-pages like Special:Drilldown/Saints).
@@ -8,7 +8,7 @@
 
 declare( strict_types = 1 );
 
-namespace MediaWiki\Extension\SaintapediaSort;
+namespace MediaWiki\Extension\SaintapediaDrilldown;
 
 use MediaWiki\Hook\BeforePageDisplayHook;
 
@@ -21,7 +21,7 @@ class Hooks implements BeforePageDisplayHook {
 	public function onBeforePageDisplay( $out, $skin ): void {
 		$config = $out->getConfig();
 
-		if ( !$config->get( 'SaintapediaSortSidebarEnabled' ) ) {
+		if ( !$config->get( 'SaintapediaDrilldownSidebarEnabled' ) ) {
 			return;
 		}
 
@@ -31,29 +31,29 @@ class Hooks implements BeforePageDisplayHook {
 		}
 
 		// Clamp config values to documented valid ranges.
-		$rawWidth      = (int)$config->get( 'SaintapediaSortSidebarWidth' );
-		$rawBreakpoint = (int)$config->get( 'SaintapediaSortMobileBreakpoint' );
+		$rawWidth      = (int)$config->get( 'SaintapediaDrilldownSidebarWidth' );
+		$rawBreakpoint = (int)$config->get( 'SaintapediaDrilldownMobileBreakpoint' );
 		$sidebarWidth  = max( 120, min( 800, $rawWidth ) );
 		$mobileBreak   = max( 320, min( 1600, $rawBreakpoint ) );
 		if ( $sidebarWidth !== $rawWidth ) {
-			wfLogWarning( 'SaintapediaSort: SaintapediaSortSidebarWidth value ' . $rawWidth .
+			wfLogWarning( 'SaintapediaDrilldown: SaintapediaDrilldownSidebarWidth value ' . $rawWidth .
 				' is out of range [120, 800]; clamped to ' . $sidebarWidth . '.' );
 		}
 		if ( $mobileBreak !== $rawBreakpoint ) {
-			wfLogWarning( 'SaintapediaSort: SaintapediaSortMobileBreakpoint value ' . $rawBreakpoint .
+			wfLogWarning( 'SaintapediaDrilldown: SaintapediaDrilldownMobileBreakpoint value ' . $rawBreakpoint .
 				' is out of range [320, 1600]; clamped to ' . $mobileBreak . '.' );
 		}
 
 		$out->addJsConfigVars( [
-			'saintapediaSortSidebarWidth'     => $sidebarWidth,
-			'saintapediaSortShowFilterChips'  => (bool)$config->get( 'SaintapediaSortShowFilterChips' ),
-			'saintapediaSortStickyFilters'    => (bool)$config->get( 'SaintapediaSortStickyFilters' ),
-			'saintapediaSortMobileBreakpoint' => $mobileBreak,
+			'saintapediaDrilldownSidebarWidth'     => $sidebarWidth,
+			'saintapediaDrilldownShowFilterChips'  => (bool)$config->get( 'SaintapediaDrilldownShowFilterChips' ),
+			'saintapediaDrilldownStickyFilters'    => (bool)$config->get( 'SaintapediaDrilldownStickyFilters' ),
+			'saintapediaDrilldownMobileBreakpoint' => $mobileBreak,
 		] );
 
 		// Styles loaded render-blocking to avoid a style pop when JS applies the flex layout.
-		$out->addModuleStyles( 'ext.SaintapediaSort.styles' );
-		$out->addModules( 'ext.SaintapediaSort' );
+		$out->addModuleStyles( 'ext.SaintapediaDrilldown.styles' );
+		$out->addModules( 'ext.SaintapediaDrilldown' );
 
 		// Emit the configured mobile breakpoint; omitted at the default 720px.
 		if ( $mobileBreak !== 720 ) {

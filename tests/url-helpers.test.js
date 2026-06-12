@@ -9,8 +9,8 @@ global.mw = {
 	config:  { get: function () { return null; } },
 	log:     { warn: function () {} },
 	msg:     function ( key, a, b ) {
-		if ( key === 'saintapediasort-search-filter-label' ) { return a + ' (search)'; }
-		if ( key === 'saintapediasort-range-value' ) { return a + ' → ' + b; }
+		if ( key === 'saintapediadrilldown-search-filter-label' ) { return a + ' (search)'; }
+		if ( key === 'saintapediadrilldown-range-value' ) { return a + ' → ' + b; }
 		return '';
 	},
 	storage: { get: function () { return null; }, set: function () {} }
@@ -39,7 +39,7 @@ global.document = {
 };
 
 const { getActiveFilters, buildRemoveSearch, buildRemoveFamilySearch, buildClearSearch } =
-	require( '../modules/ext.SaintapediaSort.js' );
+	require( '../modules/ext.SaintapediaDrilldown.js' );
 
 /* ---- getActiveFilters ------------------------------------------------- */
 

@@ -2,14 +2,14 @@
 	"@metadata": {
 		"authors": [ "Saintapedia contributors" ]
 	},
-	"saintapediasort-desc": "Adds a sidebar layout, active-filter chips, and mobile toggle to Cargo's Special:Drilldown.",
-	"saintapediasort-show-filters": "Show filters",
-	"saintapediasort-hide-filters": "Hide filters",
-	"saintapediasort-clear-filters": "Clear all filters",
-	"saintapediasort-remove-filter": "Remove filter",
-	"saintapediasort-active-filters": "Active filters",
-	"saintapediasort-chip-text": "$1: $2",
-	"saintapediasort-remove-filter-aria": "Remove filter $1: $2",
-	"saintapediasort-search-filter-label": "$1 (search)",
-	"saintapediasort-range-value": "$1 → $2"
+	"saintapediadrilldown-desc": "Adds a sidebar layout, active-filter chips, and mobile toggle to Cargo's Special:Drilldown.",
+	"saintapediadrilldown-show-filters": "Show filters",
+	"saintapediadrilldown-hide-filters": "Hide filters",
+	"saintapediadrilldown-clear-filters": "Clear all filters",
+	"saintapediadrilldown-remove-filter": "Remove filter",
+	"saintapediadrilldown-active-filters": "Active filters",
+	"saintapediadrilldown-chip-text": "$1: $2",
+	"saintapediadrilldown-remove-filter-aria": "Remove filter $1: $2",
+	"saintapediadrilldown-search-filter-label": "$1 (search)",
+	"saintapediadrilldown-range-value": "$1 → $2"
 }

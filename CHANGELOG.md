@@ -7,6 +7,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **Extension renamed SaintapediaSort → SaintapediaDrilldown** (better describes
+  what it does). Breaking for any existing install: PHP namespace, module names
+  (`ext.SaintapediaDrilldown*`), all `$wgSaintapediaDrilldown*` config variables,
+  i18n message keys, and the `wfLoadExtension( 'SaintapediaDrilldown' )` entry
+  point all change; the extension directory must be named `SaintapediaDrilldown`.
+  No install existed before the rename, so no migration path is provided.
+
 - **CSS linting migrated from grunt-stylelint to the stylelint CLI**
   (`npm run lint:css`), unblocking the `stylelint-config-wikimedia`
   0.16 → 0.19.2 bump (stylelint 17.6). grunt-stylelint 0.19 cannot load ESM

@@ -1,4 +1,4 @@
-# SaintapediaSort
+# SaintapediaDrilldown
 
 A [MediaWiki](https://www.mediawiki.org/) extension that modernises the faceted-search UI of the [Cargo](https://www.mediawiki.org/wiki/Extension:Cargo) extension's `Special:Drilldown` page for [Saintapedia](https://saintapedia.org).
 
@@ -40,19 +40,19 @@ A [MediaWiki](https://www.mediawiki.org/) extension that modernises the faceted-
 
 ```bash
 cd /path/to/your/wiki/extensions
-git clone https://github.com/Saintapedia/SaintapediaSort.git SaintapediaSort
+git clone https://github.com/Saintapedia/SaintapediaDrilldown.git SaintapediaDrilldown
 ```
 
 **Option B — Download ZIP**
 
-Download from GitHub and extract so the folder is named `SaintapediaSort` inside `extensions/`.
+Download from GitHub and extract so the folder is named `SaintapediaDrilldown` inside `extensions/`.
 
 ### 2 — Register the extension
 
 Add the following line to `LocalSettings.php` **after** the Cargo `wfLoadExtension` call:
 
 ```php
-wfLoadExtension( 'SaintapediaSort' );
+wfLoadExtension( 'SaintapediaDrilldown' );
 ```
 
 ### 3 — Clear caches
@@ -70,7 +70,7 @@ No database schema changes are made; this step simply clears the ResourceLoader 
 The old drilldown block in `MediaWiki:Common.css` targeted `.mw-parser-output`, which is **never present** on special pages and therefore never fired. Remove or comment it out to avoid conflicts:
 
 ```css
-/* REMOVE — superseded by SaintapediaSort extension */
+/* REMOVE — superseded by SaintapediaDrilldown extension */
 body.special-SpecialDrilldown #bodyContent > .mw-parser-output { … }
 body.special-SpecialDrilldown .drilldown-filters-wrapper { … }
 body.special-SpecialDrilldown .drilldown-results { … }
@@ -81,9 +81,9 @@ body.special-SpecialDrilldown .drilldown-results { … }
 
 ## Configuration
 
-All variables can be set in `LocalSettings.php` after `wfLoadExtension( 'SaintapediaSort' );`.
+All variables can be set in `LocalSettings.php` after `wfLoadExtension( 'SaintapediaDrilldown' );`.
 
-### `$wgSaintapediaSortSidebarEnabled`
+### `$wgSaintapediaDrilldownSidebarEnabled`
 
 | Type | Default |
 |------|---------|
@@ -92,12 +92,12 @@ All variables can be set in `LocalSettings.php` after `wfLoadExtension( 'Saintap
 Master switch. Set to `false` to completely disable the extension without removing it.
 
 ```php
-$wgSaintapediaSortSidebarEnabled = true;
+$wgSaintapediaDrilldownSidebarEnabled = true;
 ```
 
 ---
 
-### `$wgSaintapediaSortSidebarWidth`
+### `$wgSaintapediaDrilldownSidebarWidth`
 
 | Type | Default | Valid range |
 |------|---------|-------------|
@@ -106,7 +106,7 @@ $wgSaintapediaSortSidebarEnabled = true;
 Width of the filter sidebar on desktop viewports. Values outside the valid range are clamped and a warning is written to the MediaWiki log. The results area automatically fills the remaining space.
 
 ```php
-$wgSaintapediaSortSidebarWidth = 300;
+$wgSaintapediaDrilldownSidebarWidth = 300;
 ```
 
 You can also override this with a CSS custom property in `MediaWiki:Common.css` without touching PHP:
@@ -119,7 +119,7 @@ You can also override this with a CSS custom property in `MediaWiki:Common.css` 
 
 ---
 
-### `$wgSaintapediaSortShowFilterChips`
+### `$wgSaintapediaDrilldownShowFilterChips`
 
 | Type | Default |
 |------|---------|
@@ -128,12 +128,12 @@ You can also override this with a CSS custom property in `MediaWiki:Common.css` 
 When enabled, a row of removable "chip" tags appears above the results listing every active URL filter. Each chip has an `×` link that removes only that filter. When more than one filter is active a *Clear all filters* link appears at the right.
 
 ```php
-$wgSaintapediaSortShowFilterChips = true;
+$wgSaintapediaDrilldownShowFilterChips = true;
 ```
 
 ---
 
-### `$wgSaintapediaSortStickyFilters`
+### `$wgSaintapediaDrilldownStickyFilters`
 
 | Type | Default |
 |------|---------|
@@ -142,12 +142,12 @@ $wgSaintapediaSortShowFilterChips = true;
 When enabled the sidebar scrolls independently of the results column using `position: sticky`, keeping filters visible at all times on desktop.
 
 ```php
-$wgSaintapediaSortStickyFilters = true;
+$wgSaintapediaDrilldownStickyFilters = true;
 ```
 
 ---
 
-### `$wgSaintapediaSortMobileBreakpoint`
+### `$wgSaintapediaDrilldownMobileBreakpoint`
 
 | Type | Default | Valid range |
 |------|---------|-------------|
@@ -156,7 +156,7 @@ $wgSaintapediaSortStickyFilters = true;
 Viewport width below which the layout switches from side-by-side to stacked. Values outside the valid range are clamped and a warning is written to the MediaWiki log. The no-JS CSS fallback always uses 720 px; custom values require JavaScript. At narrow widths the results move to the top and the filter sidebar is hidden behind a *Show filters* toggle button.
 
 ```php
-$wgSaintapediaSortMobileBreakpoint = 720;
+$wgSaintapediaDrilldownMobileBreakpoint = 720;
 ```
 
 ---
@@ -169,11 +169,11 @@ Implements `BeforePageDisplay`. On any `Special:Drilldown` or `Special:Drilldown
 
 1. Reads the PHP configuration variables.
 2. Forwards them to the browser as `mw.config` values.
-3. Queues the `ext.SaintapediaSort` ResourceLoader module.
+3. Queues the `ext.SaintapediaDrilldown` ResourceLoader module.
 
 The module is **only loaded on drilldown pages**, keeping its footprint zero on all other pages.
 
-### JavaScript — `modules/ext.SaintapediaSort.js`
+### JavaScript — `modules/ext.SaintapediaDrilldown.js`
 
 Runs after content is ready via `mw.hook('wikipage.content')`.
 
@@ -183,12 +183,12 @@ Runs after content is ready via `mw.hook('wikipage.content')`.
 
 3. **Mobile toggle** — Inserts a `<button class="cargo-filters-toggle">` directly before the sidebar. Hidden unless the JS breakpoint watcher adds `.cargo-mobile-layout`; shown below the configurable breakpoint. Toggles the `cargo-filters-collapsed` class on the sidebar. State is persisted in localStorage **only when the user explicitly clicks the button**; the breakpoint watcher never overwrites the stored preference.
 
-### CSS — `modules/ext.SaintapediaSort.css`
+### CSS — `modules/ext.SaintapediaDrilldown.css`
 
 All selectors are scoped to `.cargo-drilldown-layout`, so **no other wiki page is affected**.
 
 - CSS custom properties (`--cargo-sidebar-width`, `--cargo-filter-bg`, etc.) allow visual tweaks from `MediaWiki:Common.css` without editing extension files.
-- `position: sticky` is applied via the `.cargo-filters-sticky` class (added by JS when `$wgSaintapediaSortStickyFilters = true`), and is only active when the `.cargo-mobile-layout` class is absent.
+- `position: sticky` is applied via the `.cargo-filters-sticky` class (added by JS when `$wgSaintapediaDrilldownStickyFilters = true`), and is only active when the `.cargo-mobile-layout` class is absent.
 - All mobile layout rules key off the `.cargo-mobile-layout` class toggled by the JS breakpoint watcher. **The extension requires JavaScript**; there is no CSS-only mobile fallback.
 
 ---
@@ -225,17 +225,17 @@ body.special-SpecialDrilldown .cargo-drilldown-layout {
 
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
-| Sidebar doesn't appear; filters still above results | Cargo selectors not matching | Open DevTools → Console; a `SaintapediaSort:` warning will name the missing selector if the elements were not found. |
+| Sidebar doesn't appear; filters still above results | Cargo selectors not matching | Open DevTools → Console; a `SaintapediaDrilldown:` warning will name the missing selector if the elements were not found. |
 | Layout unchanged despite extension loading | Old drilldown CSS block still in `MediaWiki:Common.css` | Remove the `#bodyContent > .mw-parser-output` block (Installation step 4). |
 | Filter chips not showing | No active URL filters | Click a filter value on the drilldown; chips appear once filters are applied. |
-| Extension module not loading | `wfLoadExtension` missing or wrong order | Confirm `LocalSettings.php` edit; Cargo must load before SaintapediaSort. |
+| Extension module not loading | `wfLoadExtension` missing or wrong order | Confirm `LocalSettings.php` edit; Cargo must load before SaintapediaDrilldown. |
 | Sticky sidebar overlaps wiki header | Skin has a sticky top bar (e.g. Vector 2022) | Add to `MediaWiki:Common.css`: `.drilldown-filters-wrapper.cargo-filters-sticky { top: 3.5em; }` |
 
 ---
 
 ## Contributing
 
-Pull requests and issues are welcome at [github.com/Saintapedia/SaintapediaSort](https://github.com/Saintapedia/SaintapediaSort).
+Pull requests and issues are welcome at [github.com/Saintapedia/SaintapediaDrilldown](https://github.com/Saintapedia/SaintapediaDrilldown).
 
 When submitting a PR please:
 - Keep all CSS rules scoped to `.cargo-drilldown-layout`.

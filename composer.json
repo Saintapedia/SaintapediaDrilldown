@@ -1,6 +1,6 @@
 {
-	"name": "saintapedia/saintapediasort",
-	"description": "MediaWiki extension: SaintapediaSort",
+	"name": "saintapedia/saintapediadrilldown",
+	"description": "MediaWiki extension: SaintapediaDrilldown",
 	"license": "MIT",
 	"require": {
 		"php": ">=7.4"

@@ -1,5 +1,5 @@
 {
-	"name": "mediawiki-extension-saintapediasort",
+	"name": "mediawiki-extension-saintapediadrilldown",
 	"description": "MediaWiki extension: sidebar layout and filter chips for Cargo Special:Drilldown",
 	"version": "0.2.1",
 	"private": true,

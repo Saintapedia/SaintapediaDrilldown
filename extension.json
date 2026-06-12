@@ -1,9 +1,9 @@
 {
-	"name": "SaintapediaSort",
+	"name": "SaintapediaDrilldown",
 	"version": "0.2.1",
 	"author": [ "Saintapedia contributors" ],
-	"url": "https://github.com/Saintapedia/SaintapediaSort",
-	"descriptionmsg": "saintapediasort-desc",
+	"url": "https://github.com/Saintapedia/SaintapediaDrilldown",
+	"descriptionmsg": "saintapediadrilldown-desc",
 	"license-name": "MIT",
 	"type": "other",
 	"requires": {
@@ -13,61 +13,61 @@
 		}
 	},
 	"AutoloadNamespaces": {
-		"MediaWiki\\Extension\\SaintapediaSort\\": "includes/"
+		"MediaWiki\\Extension\\SaintapediaDrilldown\\": "includes/"
 	},
 	"MessagesDirs": {
-		"SaintapediaSort": [ "i18n" ]
+		"SaintapediaDrilldown": [ "i18n" ]
 	},
 	"HookHandlers": {
 		"main": {
-			"class": "MediaWiki\\Extension\\SaintapediaSort\\Hooks"
+			"class": "MediaWiki\\Extension\\SaintapediaDrilldown\\Hooks"
 		}
 	},
 	"Hooks": {
 		"BeforePageDisplay": "main"
 	},
 	"ResourceModules": {
-		"ext.SaintapediaSort.styles": {
-			"styles": [ "modules/ext.SaintapediaSort.css" ]
+		"ext.SaintapediaDrilldown.styles": {
+			"styles": [ "modules/ext.SaintapediaDrilldown.css" ]
 		},
-		"ext.SaintapediaSort": {
-			"scripts": [ "modules/ext.SaintapediaSort.js" ],
+		"ext.SaintapediaDrilldown": {
+			"scripts": [ "modules/ext.SaintapediaDrilldown.js" ],
 			"dependencies": [ "mediawiki.storage" ],
 			"messages": [
-				"saintapediasort-show-filters",
-				"saintapediasort-hide-filters",
-				"saintapediasort-clear-filters",
-				"saintapediasort-remove-filter",
-				"saintapediasort-active-filters",
-				"saintapediasort-chip-text",
-				"saintapediasort-remove-filter-aria",
-				"saintapediasort-search-filter-label",
-				"saintapediasort-range-value"
+				"saintapediadrilldown-show-filters",
+				"saintapediadrilldown-hide-filters",
+				"saintapediadrilldown-clear-filters",
+				"saintapediadrilldown-remove-filter",
+				"saintapediadrilldown-active-filters",
+				"saintapediadrilldown-chip-text",
+				"saintapediadrilldown-remove-filter-aria",
+				"saintapediadrilldown-search-filter-label",
+				"saintapediadrilldown-range-value"
 			]
 		}
 	},
 	"ResourceFileModulePaths": {
 		"localBasePath": "",
-		"remoteExtPath": "SaintapediaSort"
+		"remoteExtPath": "SaintapediaDrilldown"
 	},
 	"config": {
-		"SaintapediaSortSidebarEnabled": {
+		"SaintapediaDrilldownSidebarEnabled": {
 			"value": true,
 			"description": "Enable the sidebar (flex) layout for Special:Drilldown. Set false to disable entirely and fall back to Cargo defaults."
 		},
-		"SaintapediaSortSidebarWidth": {
+		"SaintapediaDrilldownSidebarWidth": {
 			"value": 280,
 			"description": "Width of the filter sidebar in pixels (desktop). Valid range: 120–800."
 		},
-		"SaintapediaSortShowFilterChips": {
+		"SaintapediaDrilldownShowFilterChips": {
 			"value": true,
 			"description": "Show active-filter chips above the results area."
 		},
-		"SaintapediaSortStickyFilters": {
+		"SaintapediaDrilldownStickyFilters": {
 			"value": true,
 			"description": "Make the filter sidebar sticky while the user scrolls results."
 		},
-		"SaintapediaSortMobileBreakpoint": {
+		"SaintapediaDrilldownMobileBreakpoint": {
 			"value": 720,
 			"description": "Viewport width (px) below which the layout switches to stacked / mobile mode. Valid range: 320–1600."
 		}

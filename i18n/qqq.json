@@ -2,14 +2,14 @@
 	"@metadata": {
 		"authors": [ "Saintapedia contributors" ]
 	},
-	"saintapediasort-desc": "Extension description shown on [[Special:Version]].",
-	"saintapediasort-show-filters": "Label for the mobile button that reveals the filter sidebar. Shown when the sidebar is currently hidden.",
-	"saintapediasort-hide-filters": "Label for the mobile button that hides the filter sidebar. Shown when the sidebar is currently visible.",
-	"saintapediasort-clear-filters": "Link label that removes all active filters at once. Appears in the active-filter chips bar when two or more filters are applied.",
-	"saintapediasort-remove-filter": "Tooltip and aria-label on the × button inside each active-filter chip. The chip also shows the filter name and value.",
-	"saintapediasort-active-filters": "Accessible name (aria-label) for the active-filter chips bar. Used as a landmark region label for screen readers.",
-	"saintapediasort-chip-text": "Display text inside each active-filter chip. $1 is the filter name (e.g. \"Category\"), $2 is the selected value (e.g. \"Martyrs\"). Translators may reorder or repunctuate.",
-	"saintapediasort-remove-filter-aria": "Accessible label on the remove (×) button inside each active-filter chip. $1 is the filter name, $2 is the selected value.",
-	"saintapediasort-search-filter-label": "Label suffix for text-search filter chips. $1 is the field name (e.g. \"Name\"). Displayed as the chip label when a full-text search param is active.",
-	"saintapediasort-range-value": "Display value for a date- or number-range filter chip. $1 is the lower bound, $2 is the upper bound (e.g. \"2020 → 2021\"). Translators may change the separator."
+	"saintapediadrilldown-desc": "Extension description shown on [[Special:Version]].",
+	"saintapediadrilldown-show-filters": "Label for the mobile button that reveals the filter sidebar. Shown when the sidebar is currently hidden.",
+	"saintapediadrilldown-hide-filters": "Label for the mobile button that hides the filter sidebar. Shown when the sidebar is currently visible.",
+	"saintapediadrilldown-clear-filters": "Link label that removes all active filters at once. Appears in the active-filter chips bar when two or more filters are applied.",
+	"saintapediadrilldown-remove-filter": "Tooltip and aria-label on the × button inside each active-filter chip. The chip also shows the filter name and value.",
+	"saintapediadrilldown-active-filters": "Accessible name (aria-label) for the active-filter chips bar. Used as a landmark region label for screen readers.",
+	"saintapediadrilldown-chip-text": "Display text inside each active-filter chip. $1 is the filter name (e.g. \"Category\"), $2 is the selected value (e.g. \"Martyrs\"). Translators may reorder or repunctuate.",
+	"saintapediadrilldown-remove-filter-aria": "Accessible label on the remove (×) button inside each active-filter chip. $1 is the filter name, $2 is the selected value.",
+	"saintapediadrilldown-search-filter-label": "Label suffix for text-search filter chips. $1 is the field name (e.g. \"Name\"). Displayed as the chip label when a full-text search param is active.",
+	"saintapediadrilldown-range-value": "Display value for a date- or number-range filter chip. $1 is the lower bound, $2 is the upper bound (e.g. \"2020 → 2021\"). Translators may change the separator."
 }

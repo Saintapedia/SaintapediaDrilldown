@@ -1,5 +1,5 @@
 /**
- * SaintapediaSort — JavaScript module
+ * SaintapediaDrilldown — JavaScript module
  *
  * 1. Wraps .drilldown-filters-wrapper + .drilldown-results in a flex
  *    container. If they do not share a parent the layout step is skipped
@@ -14,14 +14,14 @@
 	'use strict';
 
 	var cfg = {
-		sidebarWidth:  mw.config.get( 'saintapediaSortSidebarWidth',    280 ),
-		showChips:     mw.config.get( 'saintapediaSortShowFilterChips',  true ),
-		stickyFilters: mw.config.get( 'saintapediaSortStickyFilters',    true ),
-		mobileBreak:   mw.config.get( 'saintapediaSortMobileBreakpoint', 720 )
+		sidebarWidth:  mw.config.get( 'saintapediaDrilldownSidebarWidth',    280 ),
+		showChips:     mw.config.get( 'saintapediaDrilldownShowFilterChips',  true ),
+		stickyFilters: mw.config.get( 'saintapediaDrilldownStickyFilters',    true ),
+		mobileBreak:   mw.config.get( 'saintapediaDrilldownMobileBreakpoint', 720 )
 	};
 
 	// Namespace the key per wiki so wikifarm installs don't share state.
-	var STORAGE_KEY = 'saintapediasort-filters-open-' + ( mw.config.get( 'wgWikiID' ) || '' );
+	var STORAGE_KEY = 'saintapediadrilldown-filters-open-' + ( mw.config.get( 'wgWikiID' ) || '' );
 	var storage     = mw.storage;
 
 	/* -- Pure URL / filter helpers (no globals; exported for unit tests) -- */
@@ -73,7 +73,7 @@
 			// _search_X → label "X (search)" via i18n
 			var sm = key.match( /^_search_(.+)$/ );
 			var label = sm
-				? mw.msg( 'saintapediasort-search-filter-label', sm[ 1 ].replace( /_/g, ' ' ) )
+				? mw.msg( 'saintapediadrilldown-search-filter-label', sm[ 1 ].replace( /_/g, ' ' ) )
 				: key.replace( /_/g, ' ' );
 			filters.push( { key: key, label: label, value: val } );
 		} );
@@ -87,7 +87,7 @@
 				isFamily:   true,
 				familyKeys: members.map( function ( m ) { return m.key; } ),
 				value:      members.length === 2
-				? mw.msg( 'saintapediasort-range-value', members[ 0 ].value, members[ 1 ].value )
+				? mw.msg( 'saintapediadrilldown-range-value', members[ 0 ].value, members[ 1 ].value )
 				: members.map( function ( m ) { return m.value; } ).join( ', ' )
 			} );
 		} );
@@ -184,7 +184,7 @@
 	function applyFlexLayout( filtersEl, resultsEl ) {
 		var parent = filtersEl.parentElement;
 		if ( resultsEl.parentElement !== parent ) {
-			mw.log.warn( 'SaintapediaSort: filters and results do not share a parent; sidebar layout skipped.' );
+			mw.log.warn( 'SaintapediaDrilldown: filters and results do not share a parent; sidebar layout skipped.' );
 			return null;
 		}
 		var wrapper = el( 'div', 'cargo-drilldown-layout' );
@@ -202,20 +202,20 @@
 
 		var bar = el( 'div', 'cargo-active-filters' );
 		bar.setAttribute( 'role', 'region' );
-		bar.setAttribute( 'aria-label', mw.msg( 'saintapediasort-active-filters' ) );
+		bar.setAttribute( 'aria-label', mw.msg( 'saintapediadrilldown-active-filters' ) );
 
 		filters.forEach( function ( f ) {
 			var chip   = el( 'span', 'cargo-filter-chip' );
 			var text   = el( 'span', 'cargo-chip-label',
-				mw.msg( 'saintapediasort-chip-text', f.label, f.value ) );
+				mw.msg( 'saintapediadrilldown-chip-text', f.label, f.value ) );
 			var qs     = f.isFamily
 				? buildRemoveFamilySearch( window.location.search, f.key )
 				: buildRemoveSearch( window.location.search, f.key, f.value );
 			var remove = el( 'a', 'cargo-chip-remove', '×' );
 			remove.href  = window.location.pathname + ( qs ? '?' + qs : '' );
-			remove.title = mw.msg( 'saintapediasort-remove-filter' );
+			remove.title = mw.msg( 'saintapediadrilldown-remove-filter' );
 			remove.setAttribute( 'aria-label',
-				mw.msg( 'saintapediasort-remove-filter-aria', f.label, f.value ) );
+				mw.msg( 'saintapediadrilldown-remove-filter-aria', f.label, f.value ) );
 			chip.appendChild( text );
 			chip.appendChild( remove );
 			bar.appendChild( chip );
@@ -223,7 +223,7 @@
 
 		if ( filters.length > 1 ) {
 			var clearWrap = el( 'span', 'cargo-clear-all' );
-			var clearLink = el( 'a', '', mw.msg( 'saintapediasort-clear-filters' ) );
+			var clearLink = el( 'a', '', mw.msg( 'saintapediadrilldown-clear-filters' ) );
 			var cqs       = buildClearSearch( window.location.search );
 			clearLink.href = window.location.pathname + ( cqs ? '?' + cqs : '' );
 			clearWrap.appendChild( clearLink );
@@ -252,8 +252,8 @@
 		function setOpen( open, persist ) {
 			isOpen = open;
 			btn.textContent = isOpen
-				? mw.msg( 'saintapediasort-hide-filters' )
-				: mw.msg( 'saintapediasort-show-filters' );
+				? mw.msg( 'saintapediadrilldown-hide-filters' )
+				: mw.msg( 'saintapediadrilldown-show-filters' );
 			btn.setAttribute( 'aria-expanded', isOpen ? 'true' : 'false' );
 			filtersEl.classList.toggle( 'cargo-filters-collapsed', !isOpen );
 			if ( persist !== false ) {
@@ -309,13 +309,13 @@
 		var filtersEl = document.querySelector( '.drilldown-filters-wrapper' );
 		var resultsEl = document.querySelector( '.drilldown-results' );
 		if ( !filtersEl || !resultsEl ) {
-			mw.log.warn( 'SaintapediaSort: Cargo selectors not found (' +
+			mw.log.warn( 'SaintapediaDrilldown: Cargo selectors not found (' +
 				( filtersEl ? '' : '.drilldown-filters-wrapper ' ) +
 				( resultsEl ? '' : '.drilldown-results' ) + 'missing).' );
 			return;
 		}
-		if ( filtersEl.dataset.saintapediasortInit ) { return; }
-		filtersEl.dataset.saintapediasortInit = '1';
+		if ( filtersEl.dataset.saintapediadrilldownInit ) { return; }
+		filtersEl.dataset.saintapediadrilldownInit = '1';
 
 		var layoutEl = applyFlexLayout( filtersEl, resultsEl );
 		if ( !layoutEl ) { return; }
