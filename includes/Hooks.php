@@ -33,7 +33,7 @@ class Hooks implements BeforePageDisplayHook {
 		// Clamp config values to documented valid ranges.
 		$rawWidth      = (int)$config->get( 'SaintapediaSortSidebarWidth' );
 		$rawBreakpoint = (int)$config->get( 'SaintapediaSortMobileBreakpoint' );
-		$sidebarWidth  = max( 120, min( 800,  $rawWidth ) );
+		$sidebarWidth  = max( 120, min( 800, $rawWidth ) );
 		$mobileBreak   = max( 320, min( 1600, $rawBreakpoint ) );
 		if ( $sidebarWidth !== $rawWidth ) {
 			wfLogWarning( 'SaintapediaSort: SaintapediaSortSidebarWidth value ' . $rawWidth .
@@ -62,8 +62,8 @@ class Hooks implements BeforePageDisplayHook {
 	}
 
 	/**
-	 * @param int $bp  Configured mobile breakpoint in pixels (already clamped).
-	 * @return string  Inline CSS @media block for the configured breakpoint.
+	 * @param int $bp Configured mobile breakpoint in pixels (already clamped).
+	 * @return string Inline CSS @media block for the configured breakpoint.
 	 */
 	private function mobileBreakpointCss( int $bp ): string {
 		$mobileCss =
