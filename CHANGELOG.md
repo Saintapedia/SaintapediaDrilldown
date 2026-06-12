@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **README corrections** — six claims described code that 0.2.0 had replaced:
+  constructor DI (removed; config read via `$out->getConfig()`), a no-JS 720px
+  CSS fallback (mobile layout is JS-driven), chip URLs via `mw.util.getUrl()`
+  (now `URLSearchParams` round-trip; `_search_*` and bracket-range behaviour now
+  documented), state in raw localStorage (now `mw.storage`, wiki-namespaced),
+  chips/toggle rendering after layout failure (extension backs off entirely),
+  and "same license as Cargo" (Cargo is GPL-2.0+; this extension is MIT).
+  Saintapedia-specific old-CSS removal section dropped from Installation.
+
 ### Changed
 
 - **Extension renamed SaintapediaSort → SaintapediaDrilldown** (better describes

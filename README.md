@@ -24,7 +24,7 @@ A [MediaWiki](https://www.mediawiki.org/) extension that modernises the faceted-
 
 | Dependency | Minimum version | Notes |
 |------------|-----------------|-------|
-| [MediaWiki](https://www.mediawiki.org/wiki/Download) | **1.39** | Uses constructor dependency injection for hooks |
+| [MediaWiki](https://www.mediawiki.org/wiki/Download) | **1.39** | Uses `HookHandlers` registration; config is read via `OutputPage::getConfig()` so no service wiring is required |
 | [Cargo](https://www.mediawiki.org/wiki/Extension:Cargo) | **>= 3.0** | Provides `Special:Drilldown` and the `.drilldown-filters-wrapper` / `.drilldown-results` DOM class names this extension targets. These are an undocumented contract; a browser console warning identifies missing selectors if Cargo changes them. |
 | PHP | **7.4+** | Compatible with PHP 7.4 and 8.x |
 
@@ -63,19 +63,7 @@ php maintenance/update.php
 php maintenance/run.php update
 ```
 
-No database schema changes are made; this step simply clears the ResourceLoader cache.
-
-### 4 — Remove conflicting CSS (Saintapedia-specific)
-
-The old drilldown block in `MediaWiki:Common.css` targeted `.mw-parser-output`, which is **never present** on special pages and therefore never fired. Remove or comment it out to avoid conflicts:
-
-```css
-/* REMOVE — superseded by SaintapediaDrilldown extension */
-body.special-SpecialDrilldown #bodyContent > .mw-parser-output { … }
-body.special-SpecialDrilldown .drilldown-filters-wrapper { … }
-body.special-SpecialDrilldown .drilldown-results { … }
-/* … and the rest of the old block … */
-```
+This step is optional — no database schema changes are made and ResourceLoader picks up new modules automatically — but it is harmless and clears any stale caches.
 
 ---
 
@@ -153,7 +141,7 @@ $wgSaintapediaDrilldownStickyFilters = true;
 |------|---------|-------------|
 | `int` (pixels) | `720` | `320`–`1600` |
 
-Viewport width below which the layout switches from side-by-side to stacked. Values outside the valid range are clamped and a warning is written to the MediaWiki log. The no-JS CSS fallback always uses 720 px; custom values require JavaScript. At narrow widths the results move to the top and the filter sidebar is hidden behind a *Show filters* toggle button.
+Viewport width below which the layout switches from side-by-side to stacked. Values outside the valid range are clamped and a warning is written to the MediaWiki log. The mobile layout is JavaScript-driven via a `matchMedia` watcher (there is no CSS-only fallback); for non-default values a matching inline `@media` block is also emitted server-side. At narrow widths the results move to the top and the filter sidebar is hidden behind a *Show filters* toggle button.
 
 ```php
 $wgSaintapediaDrilldownMobileBreakpoint = 720;
@@ -177,11 +165,11 @@ The module is **only loaded on drilldown pages**, keeping its footprint zero on 
 
 Runs after content is ready via `mw.hook('wikipage.content')`.
 
-1. **Flex wrapper** — Locates `.drilldown-filters-wrapper` and `.drilldown-results`. If they share a parent it wraps them in a new `<div class="cargo-drilldown-layout">` flex container. If they do not share a parent the layout step is skipped gracefully (a browser console warning identifies the problem); chip and toggle features still render.
+1. **Flex wrapper** — Locates `.drilldown-filters-wrapper` and `.drilldown-results`. If they share a parent it wraps them in a new `<div class="cargo-drilldown-layout">` flex container. If they do not share a parent the extension backs off entirely — a browser console warning identifies the problem, and no chips or toggle are created either, leaving Cargo's default UI untouched.
 
-2. **Filter chips** — Parses `window.location.search`, skips internal params (those beginning with `_`, plus `title` and `action`), and renders a labelled chip for every remaining key-value pair. URLs are built with `mw.util.getUrl()` so both short-URL and `index.php?title=` wikis work correctly. Clicking `×` on a chip rebuilds the URL with that parameter removed.
+2. **Filter chips** — Parses `window.location.search` and renders a labelled chip for every user-applied filter. Cargo-internal params (those beginning with `_`) and a reserved list of MediaWiki params (`title`, `action`, `uselang`, `useskin`, `debug`, …) are skipped — with one exception: `_search_*` text-search params **do** render as chips ("Name (search)"). Bracket-indexed range params (`Date[0]`/`Date[1]`) are grouped into a single chip ("Date: 2020 → 2021") whose `×` removes all bounds. Chip URLs are rebuilt with a `URLSearchParams` round-trip, which preserves repeated and bracketed keys byte-for-byte and works on both short-URL and `index.php?title=` wikis; removing or clearing filters also resets `_offset` so pagination never points at an empty page.
 
-3. **Mobile toggle** — Inserts a `<button class="cargo-filters-toggle">` directly before the sidebar. Hidden unless the JS breakpoint watcher adds `.cargo-mobile-layout`; shown below the configurable breakpoint. Toggles the `cargo-filters-collapsed` class on the sidebar. State is persisted in localStorage **only when the user explicitly clicks the button**; the breakpoint watcher never overwrites the stored preference.
+3. **Mobile toggle** — Inserts a `<button class="cargo-filters-toggle">` directly before the sidebar. Hidden unless the JS breakpoint watcher adds `.cargo-mobile-layout`; shown below the configurable breakpoint. Toggles the `cargo-filters-collapsed` class on the sidebar. State is persisted via `mw.storage` under a key namespaced by wiki ID (safe on wiki farms), and **only when the user explicitly clicks the button**; the breakpoint watcher never overwrites the stored preference.
 
 ### CSS — `modules/ext.SaintapediaDrilldown.css`
 
@@ -211,7 +199,7 @@ Override CSS custom properties in `MediaWiki:Common.css`:
 }
 ```
 
-### Per-table sidebar width
+### Changing the sidebar width without PHP
 
 ```css
 body.special-SpecialDrilldown .cargo-drilldown-layout {
@@ -226,7 +214,7 @@ body.special-SpecialDrilldown .cargo-drilldown-layout {
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
 | Sidebar doesn't appear; filters still above results | Cargo selectors not matching | Open DevTools → Console; a `SaintapediaDrilldown:` warning will name the missing selector if the elements were not found. |
-| Layout unchanged despite extension loading | Old drilldown CSS block still in `MediaWiki:Common.css` | Remove the `#bodyContent > .mw-parser-output` block (Installation step 4). |
+| Layout unchanged despite extension loading | Custom drilldown CSS in `MediaWiki:Common.css` conflicting with the extension's styles | Remove or comment out any old rules targeting `.drilldown-filters-wrapper` / `.drilldown-results`. |
 | Filter chips not showing | No active URL filters | Click a filter value on the drilldown; chips appear once filters are applied. |
 | Extension module not loading | `wfLoadExtension` missing or wrong order | Confirm `LocalSettings.php` edit; Cargo must load before SaintapediaDrilldown. |
 | Sticky sidebar overlaps wiki header | Skin has a sticky top bar (e.g. Vector 2022) | Add to `MediaWiki:Common.css`: `.drilldown-filters-wrapper.cargo-filters-sticky { top: 3.5em; }` |
@@ -246,4 +234,4 @@ When submitting a PR please:
 
 ## License
 
-[MIT](LICENSE) — same license as the Cargo extension.
+[MIT](LICENSE)
