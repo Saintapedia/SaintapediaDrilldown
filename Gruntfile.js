@@ -22,8 +22,9 @@ module.exports = function ( grunt ) {
 		}
 	} );
 
-	// CSS linting runs via the stylelint CLI (npm run lint:css); stylelint 17+
-	// is pure ESM and cannot be loaded by grunt-stylelint's CJS require().
+	// CSS linting runs via the stylelint CLI (npm run lint:css) rather than
+	// grunt-stylelint, which peer-pins one exact stylelint major and needs
+	// require(esm) support (Node >= 20.19.5) to load ESM stylelint.
 	grunt.registerTask( 'test', [ 'eslint', 'banana', 'jsonlint' ] );
 	grunt.registerTask( 'default', 'test' );
 };

@@ -8,12 +8,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - **CSS linting migrated from grunt-stylelint to the stylelint CLI**
-  (`npm run lint:css`): stylelint 17+ is pure ESM and cannot be loaded by
-  grunt-stylelint's CJS `require()`; this unblocks the
-  `stylelint-config-wikimedia` 0.16 → 0.19.2 bump (stylelint 17.6)
-- Dependabot: stylelint ignore rules removed (no longer blocked); grunt-eslint
-  major ignore re-documented — the actual blocker is that `eslint-config-wikimedia`
-  has no ESLint 9-compatible release yet (latest 0.32.4 peers on eslint ^8.57.0)
+  (`npm run lint:css`), unblocking the `stylelint-config-wikimedia`
+  0.16 → 0.19.2 bump (stylelint 17.6). grunt-stylelint 0.19 cannot load ESM
+  stylelint from CJS; 0.21 can (via `require(esm)`, Node ≥ 20.19.5) but
+  peer-pins exactly `stylelint 17.x` — dropping the plugin removes the
+  coupling entirely
+- **CI Node bumped 20 → 22**: Node 20 reached end-of-life in April 2026
+- Dependabot: stylelint ignore rules removed — the ignore on
+  `stylelint-config-wikimedia` made Dependabot propose `grunt-stylelint` 0.21
+  alone, an unresolvable combination (0.21 requires stylelint 17; config 0.16
+  ships a stylelint-17-incompatible plugin). grunt-eslint major ignore
+  re-documented — the actual blocker is that `eslint-config-wikimedia` has no
+  ESLint 9-compatible release yet (latest 0.32.4 peers on eslint ^8.57.0)
 
 ## [0.2.1] — 2026-06-12
 
