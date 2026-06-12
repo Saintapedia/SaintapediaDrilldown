@@ -14,6 +14,11 @@ updates:
       # grunt-eslint 26+ requires ESLint 9 flat-config; migrate deliberately.
       - dependency-name: grunt-eslint
         update-types: [ version-update:semver-major ]
+      # stylelint-config-wikimedia >=0.17 requires stylelint@17 (pure ESM).
+      # grunt-stylelint uses require() and cannot load ESM stylelint.
+      # Unblock by migrating to npx stylelint CLI or waiting for grunt-stylelint ESM support.
+      - dependency-name: stylelint-config-wikimedia
+        update-types: [ version-update:semver-minor, version-update:semver-major ]
 
   - package-ecosystem: github-actions
     directory: /
