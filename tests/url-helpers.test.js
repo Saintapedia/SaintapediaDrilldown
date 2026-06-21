@@ -218,3 +218,9 @@ test( 'buildClearSearch: drops bracket-family params Date[0] and Date[1]', funct
 	assert.ok( !params.has( 'Category' ), 'Category must be dropped' );
 	assert.equal( params.get( '_limit' ), '50', '_limit must be preserved' );
 } );
+
+test( 'getActiveFilters: out-of-order Date[1]/Date[0] still shows lower → upper', function () {
+	const filters = getActiveFilters( '?Date%5B1%5D=2021&Date%5B0%5D=2020' );
+	assert.equal( filters.length, 1 );
+	assert.equal( filters[ 0 ].value, '2020 → 2021', 'lower bound must appear first' );
+} );

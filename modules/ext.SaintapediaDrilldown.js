@@ -82,9 +82,10 @@
 		Object.keys( families ).forEach( function ( base ) {
 			var members = families[ base ];
 			members.sort( function ( a, b ) {
-				var ai = parseInt( a.key.match( /\[(\d+)\]$/ )[ 1 ], 10 );
-				var bi = parseInt( b.key.match( /\[(\d+)\]$/ )[ 1 ], 10 );
-				return ai - bi;
+				var am = a.key.match( /\[(\d+)\]$/ );
+				var bm = b.key.match( /\[(\d+)\]$/ );
+				return ( am ? parseInt( am[ 1 ], 10 ) : NaN ) -
+				       ( bm ? parseInt( bm[ 1 ], 10 ) : NaN );
 			} );
 			filters.push( {
 				key:        base,
