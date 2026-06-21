@@ -1,8 +1,22 @@
 /* ==========================================================================
    SaintapediaDrilldown — Sidebar layout for Cargo's Special:Drilldown
-   All rules are scoped to .cargo-drilldown-layout (added by JS) so they
-   never affect any other page.
+   Layout/toggle rules are scoped to .cargo-drilldown-layout (added by JS).
+   Chip rules are scoped to .drilldown-results so they render even when the
+   flex wrapper cannot be created (parent mismatch).
    ========================================================================== */
+
+/* 0. Pre-JS mobile fallback — stacks Cargo's default markup on narrow viewports
+      before JS creates .cargo-drilldown-layout. Covers the default 720 px
+      breakpoint only; custom breakpoints are handled by PHP inline @media. */
+@media ( max-width: 719px ) {
+	.drilldown-filters-wrapper,
+	.drilldown-results {
+		display: block;
+		width: 100%;
+		float: none;
+		max-width: none;
+	}
+}
 
 /* 1. Flex container (custom properties and layout in one block) */
 .cargo-drilldown-layout {
@@ -61,7 +75,7 @@
 }
 
 /* 4. Active-filter chips bar */
-.cargo-drilldown-layout .cargo-active-filters {
+.drilldown-results .cargo-active-filters {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -74,11 +88,11 @@
 	font-size: 0.875em;
 }
 
-.cargo-drilldown-layout .cargo-active-filters:empty {
+.drilldown-results .cargo-active-filters:empty {
 	display: none;
 }
 
-.cargo-drilldown-layout .cargo-filter-chip {
+.drilldown-results .cargo-filter-chip {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.25em;
@@ -91,11 +105,11 @@
 	line-height: 1.4;
 }
 
-.cargo-drilldown-layout .cargo-chip-label {
+.drilldown-results .cargo-chip-label {
 	color: inherit;
 }
 
-.cargo-drilldown-layout a.cargo-chip-remove {
+.drilldown-results a.cargo-chip-remove {
 	display: inline-block;
 	color: #555;
 	font-weight: bold;
@@ -105,34 +119,34 @@
 	cursor: pointer;
 }
 
-.cargo-drilldown-layout a.cargo-chip-remove:hover,
-.cargo-drilldown-layout a.cargo-chip-remove:focus {
+.drilldown-results a.cargo-chip-remove:hover,
+.drilldown-results a.cargo-chip-remove:focus {
 	color: #c00;
 	text-decoration: none;
 }
 
-.cargo-drilldown-layout a.cargo-chip-remove:focus-visible {
+.drilldown-results a.cargo-chip-remove:focus-visible {
 	outline: 2px solid #3680b0;
 	outline-offset: 2px;
 	border-radius: 2px;
 }
 
 /* margin-inline-start for RTL support (CSSJanus-safe) */
-.cargo-drilldown-layout .cargo-clear-all {
+.drilldown-results .cargo-clear-all {
 	margin-inline-start: auto;
 	white-space: nowrap;
 }
 
-.cargo-drilldown-layout .cargo-clear-all a {
+.drilldown-results .cargo-clear-all a {
 	color: #555;
 	font-size: 0.9em;
 }
 
-.cargo-drilldown-layout .cargo-clear-all a:hover {
+.drilldown-results .cargo-clear-all a:hover {
 	color: #c00;
 }
 
-/* 5. Mobile toggle button — hidden by default; shown by .cargo-mobile-layout */
+/* 5. Mobile toggle button — hidden by default; shown via PHP inline @media */
 .cargo-drilldown-layout .cargo-filters-toggle {
 	display: none;
 	width: 100%;
@@ -167,32 +181,5 @@
 	overflow-wrap: break-word;
 }
 
-/* 7. JS-driven mobile layout — toggled by matchMedia watcher in JS */
-.cargo-drilldown-layout.cargo-mobile-layout {
-	flex-direction: column;
-}
-
-.cargo-drilldown-layout.cargo-mobile-layout .drilldown-results {
-	order: 1;
-	width: 100%;
-}
-
-.cargo-drilldown-layout.cargo-mobile-layout .drilldown-filters-wrapper {
-	order: 2;
-	flex: none;
-	width: 100%;
-	max-width: none;
-	position: static;
-	max-height: none;
-	overflow: visible;
-}
-
-.cargo-drilldown-layout.cargo-mobile-layout .drilldown-filters-wrapper.cargo-filters-collapsed {
-	display: none;
-}
-
-.cargo-drilldown-layout.cargo-mobile-layout .cargo-filters-toggle {
-	display: block;
-	order: 2;
-	margin-top: 0.5em;
-}
+/* 7. JS adds .cargo-mobile-layout for semantic hooks; visual mobile rules
+   are emitted as PHP inline @media in Hooks::mobileBreakpointCss(). */

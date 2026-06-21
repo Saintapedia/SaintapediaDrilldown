@@ -2,8 +2,8 @@
  * SaintapediaDrilldown — JavaScript module
  *
  * 1. Wraps .drilldown-filters-wrapper + .drilldown-results in a flex
- *    container. If they do not share a parent the layout step is skipped
- *    gracefully; chip and toggle are not created in that case.
+ *    container. If they do not share a parent the layout and toggle are
+ *    skipped gracefully; chips are still rendered above .drilldown-results.
  * 2. Renders active-filter chips using pure URL helpers (testable, no globals).
  * 3. Adds a mobile toggle whose state is persisted via mw.storage and only
  *    written on explicit user action.
@@ -328,6 +328,7 @@
 		var layoutEl = applyFlexLayout( filtersEl, resultsEl );
 
 		if ( cfg.showChips ) { renderFilterChips( resultsEl ); }
+		// Layout wrapper required for sidebar width, sticky, and toggle.
 		if ( !layoutEl ) { return; }
 
 		layoutEl.style.setProperty( '--cargo-sidebar-width', cfg.sidebarWidth + 'px' );
