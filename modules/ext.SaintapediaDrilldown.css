@@ -6,8 +6,10 @@
    ========================================================================== */
 
 /* 0. Pre-JS mobile fallback — stacks Cargo's default markup on narrow viewports
-      before JS creates .cargo-drilldown-layout. Covers the default 720 px
-      breakpoint only; custom breakpoints are handled by PHP inline @media. */
+      before JS creates .cargo-drilldown-layout. Covers the default 720 px breakpoint
+      only; custom breakpoints rely on PHP inline @media after JS runs.
+      Note: DOM order before JS may differ from the post-JS results-first order
+      since CSS order: requires a flex parent that does not yet exist. */
 @media ( max-width: 719px ) {
 	.drilldown-filters-wrapper,
 	.drilldown-results {
@@ -181,5 +183,6 @@
 	overflow-wrap: break-word;
 }
 
-/* 7. JS adds .cargo-mobile-layout for semantic hooks; visual mobile rules
-   are emitted as PHP inline @media in Hooks::mobileBreakpointCss(). */
+/* 7. .cargo-mobile-layout is still functionally required: the :not() selector
+   in section 2 uses it to suppress sticky positioning on mobile. Visual
+   layout rules are handled by PHP inline @media in mobileBreakpointCss(). */

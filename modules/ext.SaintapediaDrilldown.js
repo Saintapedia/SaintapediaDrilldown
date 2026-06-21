@@ -7,8 +7,8 @@
  * 2. Renders active-filter chips using pure URL helpers (testable, no globals).
  * 3. Adds a mobile toggle whose state is persisted via mw.storage and only
  *    written on explicit user action.
- * 4. Uses matchMedia as the single source of truth for the configured
- *    breakpoint.
+ * 4. Uses matchMedia to own toggle open/closed state and the
+ *    .cargo-mobile-layout class; PHP/CSS own the visual @media rules.
  */
 ( function () {
 	'use strict';

@@ -141,7 +141,9 @@ $wgSaintapediaDrilldownStickyFilters = true;
 |------|---------|-------------|
 | `int` (pixels) | `720` | `320`–`1600` |
 
-Viewport width below which the layout switches from side-by-side to stacked. Values outside the valid range are clamped and a warning is written to the MediaWiki log. The mobile layout is JavaScript-driven via a `matchMedia` watcher (there is no CSS-only fallback); for non-default values a matching inline `@media` block is also emitted server-side. At narrow widths the results move to the top and the filter sidebar is hidden behind a *Show filters* toggle button.
+Viewport width below which the layout switches from side-by-side to stacked. Values outside the valid range are clamped and a warning is written to the MediaWiki log. At narrow widths the results move to the top and the filter sidebar is hidden behind a *Show filters* toggle button.
+
+**Pre-JS stacking fallback:** At the default 720 px breakpoint, the stylesheet includes a static `@media (max-width: 719px)` block that forces block layout on Cargo's pre-JS markup, reducing the layout flash before JavaScript runs. This fallback applies **only at 720 px**; wikis that set a custom breakpoint rely on the PHP inline `@media` block emitted after the JS flex wrapper is created. In both cases the *results-first* visual ordering is only established once JS runs — DOM order before that may differ briefly.
 
 ```php
 $wgSaintapediaDrilldownMobileBreakpoint = 720;
@@ -165,7 +167,7 @@ The module is **only loaded on drilldown pages**, keeping its footprint zero on 
 
 Runs after content is ready via `mw.hook('wikipage.content')`.
 
-1. **Flex wrapper** — Locates `.drilldown-filters-wrapper` and `.drilldown-results`. If they share a parent it wraps them in a new `<div class="cargo-drilldown-layout">` flex container. If they do not share a parent the extension backs off entirely — a browser console warning identifies the problem, and no chips or toggle are created either, leaving Cargo's default UI untouched.
+1. **Flex wrapper** — Locates `.drilldown-filters-wrapper` and `.drilldown-results` inside `#mw-content-text`. If they share a parent it wraps them in a new `<div class="cargo-drilldown-layout">` flex container. If they do not share a parent the sidebar layout and mobile toggle are skipped (a console warning identifies the problem), but filter chips are still rendered above `.drilldown-results` so they remain useful.
 
 2. **Filter chips** — Parses `window.location.search` and renders a labelled chip for every user-applied filter. Cargo-internal params (those beginning with `_`) and a reserved list of MediaWiki params (`title`, `action`, `uselang`, `useskin`, `debug`, …) are skipped — with one exception: `_search_*` text-search params **do** render as chips ("Name (search)"). Bracket-indexed range params (`Date[0]`/`Date[1]`) are grouped into a single chip ("Date: 2020 → 2021") whose `×` removes all bounds. Chip URLs are rebuilt with a `URLSearchParams` round-trip, which preserves repeated and bracketed keys byte-for-byte and works on both short-URL and `index.php?title=` wikis; removing or clearing filters also resets `_offset` so pagination never points at an empty page.
 
@@ -177,7 +179,7 @@ All selectors are scoped to `.cargo-drilldown-layout`, so **no other wiki page i
 
 - CSS custom properties (`--cargo-sidebar-width`, `--cargo-filter-bg`, etc.) allow visual tweaks from `MediaWiki:Common.css` without editing extension files.
 - `position: sticky` is applied via the `.cargo-filters-sticky` class (added by JS when `$wgSaintapediaDrilldownStickyFilters = true`), and is only active when the `.cargo-mobile-layout` class is absent.
-- All mobile layout rules key off the `.cargo-mobile-layout` class toggled by the JS breakpoint watcher. **The extension requires JavaScript**; there is no CSS-only mobile fallback.
+- Mobile visual layout is driven by a PHP inline `@media` block (always emitted) and, at the default 720 px breakpoint, a static pre-JS `@media` block in the stylesheet that stacks Cargo's raw elements before JS runs. The `.cargo-mobile-layout` class (toggled by the JS `matchMedia` watcher) owns toggle state and suppresses sticky positioning on mobile; it is not the source of visual stacking rules. **Full results-first ordering requires JavaScript.**
 
 ---
 
