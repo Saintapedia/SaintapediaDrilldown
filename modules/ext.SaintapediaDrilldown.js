@@ -81,6 +81,11 @@
 		// Emit one chip per bracket family (appended after scalar filters).
 		Object.keys( families ).forEach( function ( base ) {
 			var members = families[ base ];
+			members.sort( function ( a, b ) {
+				var ai = parseInt( a.key.match( /\[(\d+)\]$/ )[ 1 ], 10 );
+				var bi = parseInt( b.key.match( /\[(\d+)\]$/ )[ 1 ], 10 );
+				return ai - bi;
+			} );
 			filters.push( {
 				key:        base,
 				label:      base.replace( /_/g, ' ' ),
@@ -247,6 +252,7 @@
 	 */
 	function addMobileToggle( filtersEl ) {
 		var btn    = el( 'button', 'cargo-filters-toggle' );
+		btn.type   = 'button';
 		var isOpen = false;
 
 		function setOpen( open, persist ) {
@@ -306,8 +312,9 @@
 	/* -- Main init ----------------------------------------------------- */
 
 	function init() {
-		var filtersEl = document.querySelector( '.drilldown-filters-wrapper' );
-		var resultsEl = document.querySelector( '.drilldown-results' );
+		var contentEl = document.querySelector( '#mw-content-text' );
+		var filtersEl = contentEl ? contentEl.querySelector( '.drilldown-filters-wrapper' ) : null;
+		var resultsEl = contentEl ? contentEl.querySelector( '.drilldown-results' ) : null;
 		if ( !filtersEl || !resultsEl ) {
 			mw.log.warn( 'SaintapediaDrilldown: Cargo selectors not found (' +
 				( filtersEl ? '' : '.drilldown-filters-wrapper ' ) +
@@ -318,11 +325,12 @@
 		filtersEl.dataset.saintapediadrilldownInit = '1';
 
 		var layoutEl = applyFlexLayout( filtersEl, resultsEl );
+
+		if ( cfg.showChips ) { renderFilterChips( resultsEl ); }
 		if ( !layoutEl ) { return; }
 
 		layoutEl.style.setProperty( '--cargo-sidebar-width', cfg.sidebarWidth + 'px' );
 		if ( cfg.stickyFilters ) { filtersEl.classList.add( 'cargo-filters-sticky' ); }
-		if ( cfg.showChips )     { renderFilterChips( resultsEl ); }
 
 		var toggle = addMobileToggle( filtersEl );
 		initBreakpointWatcher( layoutEl, filtersEl, toggle );

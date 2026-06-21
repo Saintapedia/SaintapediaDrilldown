@@ -61,7 +61,7 @@
 }
 
 /* 4. Active-filter chips bar */
-.cargo-active-filters {
+.cargo-drilldown-layout .cargo-active-filters {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -74,11 +74,11 @@
 	font-size: 0.875em;
 }
 
-.cargo-active-filters:empty {
+.cargo-drilldown-layout .cargo-active-filters:empty {
 	display: none;
 }
 
-.cargo-filter-chip {
+.cargo-drilldown-layout .cargo-filter-chip {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.25em;
@@ -91,11 +91,11 @@
 	line-height: 1.4;
 }
 
-.cargo-chip-label {
+.cargo-drilldown-layout .cargo-chip-label {
 	color: inherit;
 }
 
-a.cargo-chip-remove {
+.cargo-drilldown-layout a.cargo-chip-remove {
 	display: inline-block;
 	color: #555;
 	font-weight: bold;
@@ -105,35 +105,35 @@ a.cargo-chip-remove {
 	cursor: pointer;
 }
 
-a.cargo-chip-remove:hover,
-a.cargo-chip-remove:focus {
+.cargo-drilldown-layout a.cargo-chip-remove:hover,
+.cargo-drilldown-layout a.cargo-chip-remove:focus {
 	color: #c00;
 	text-decoration: none;
 }
 
-a.cargo-chip-remove:focus-visible {
+.cargo-drilldown-layout a.cargo-chip-remove:focus-visible {
 	outline: 2px solid #3680b0;
 	outline-offset: 2px;
 	border-radius: 2px;
 }
 
 /* margin-inline-start for RTL support (CSSJanus-safe) */
-.cargo-clear-all {
+.cargo-drilldown-layout .cargo-clear-all {
 	margin-inline-start: auto;
 	white-space: nowrap;
 }
 
-.cargo-clear-all a {
+.cargo-drilldown-layout .cargo-clear-all a {
 	color: #555;
 	font-size: 0.9em;
 }
 
-.cargo-clear-all a:hover {
+.cargo-drilldown-layout .cargo-clear-all a:hover {
 	color: #c00;
 }
 
 /* 5. Mobile toggle button — hidden by default; shown by .cargo-mobile-layout */
-.cargo-filters-toggle {
+.cargo-drilldown-layout .cargo-filters-toggle {
 	display: none;
 	width: 100%;
 	padding: 0.5em 0.9em;
@@ -146,11 +146,11 @@ a.cargo-chip-remove:focus-visible {
 	text-align: left;
 }
 
-.cargo-filters-toggle:hover {
+.cargo-drilldown-layout .cargo-filters-toggle:hover {
 	filter: brightness( 1.1 );
 }
 
-.cargo-filters-toggle:focus-visible {
+.cargo-drilldown-layout .cargo-filters-toggle:focus-visible {
 	outline: 2px solid #fff;
 	outline-offset: -3px;
 }

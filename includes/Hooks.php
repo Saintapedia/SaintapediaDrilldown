@@ -55,10 +55,9 @@ class Hooks implements BeforePageDisplayHook {
 		$out->addModuleStyles( 'ext.SaintapediaDrilldown.styles' );
 		$out->addModules( 'ext.SaintapediaDrilldown' );
 
-		// Emit the configured mobile breakpoint; omitted at the default 720px.
-		if ( $mobileBreak !== 720 ) {
-			$out->addInlineStyle( $this->mobileBreakpointCss( $mobileBreak ) );
-		}
+		// Always emit the @media block so the default 720px breakpoint
+		// gets a CSS-only fallback (avoids FOUC before JS runs).
+		$out->addInlineStyle( $this->mobileBreakpointCss( $mobileBreak ) );
 	}
 
 	/**

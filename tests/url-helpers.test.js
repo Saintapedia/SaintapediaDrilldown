@@ -196,3 +196,25 @@ test( 'buildRemoveFamilySearch: removes all Date[*] params and resets _offset', 
 	assert.ok( !params.has( '_offset' ), '_offset must be reset' );
 	assert.equal( params.get( 'Category' ), 'Martyrs' );
 } );
+
+/* ---- buildRemoveSearch: _search_* param (Issue 6) --------------------- */
+
+test( 'buildRemoveSearch: removes a _search_* chip param', function () {
+	const result = buildRemoveSearch( '?_search_Name=greg&Category=Martyrs', '_search_Name', 'greg' );
+	const params = new URLSearchParams( result );
+	assert.ok( !params.has( '_search_Name' ), '_search_Name must be removed' );
+	assert.equal( params.get( 'Category' ), 'Martyrs', 'Category must be preserved' );
+} );
+
+/* ---- buildClearSearch: bracket-family params (Issue 6) ---------------- */
+
+test( 'buildClearSearch: drops bracket-family params Date[0] and Date[1]', function () {
+	const result = buildClearSearch(
+		'?Date%5B0%5D=2020&Date%5B1%5D=2021&Category=Martyrs&_limit=50'
+	);
+	const params = new URLSearchParams( result );
+	assert.ok( !params.has( 'Date[0]' ), 'Date[0] must be dropped' );
+	assert.ok( !params.has( 'Date[1]' ), 'Date[1] must be dropped' );
+	assert.ok( !params.has( 'Category' ), 'Category must be dropped' );
+	assert.equal( params.get( '_limit' ), '50', '_limit must be preserved' );
+} );
