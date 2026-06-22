@@ -171,11 +171,11 @@ Runs after content is ready via `mw.hook('wikipage.content')`.
 
 2. **Filter chips** — Parses `window.location.search` and renders a labelled chip for every user-applied filter. Cargo-internal params (those beginning with `_`) and a reserved list of MediaWiki params (`title`, `action`, `uselang`, `useskin`, `debug`, …) are skipped — with one exception: `_search_*` text-search params **do** render as chips ("Name (search)"). Bracket-indexed range params (`Date[0]`/`Date[1]`) are grouped into a single chip ("Date: 2020 → 2021") whose `×` removes all bounds. Chip URLs are rebuilt with a `URLSearchParams` round-trip, which preserves repeated and bracketed keys byte-for-byte and works on both short-URL and `index.php?title=` wikis; removing or clearing filters also resets `_offset` so pagination never points at an empty page.
 
-3. **Mobile toggle** — Inserts a `<button class="cargo-filters-toggle">` directly before the sidebar. Hidden unless the JS breakpoint watcher adds `.cargo-mobile-layout`; shown below the configurable breakpoint. Toggles the `cargo-filters-collapsed` class on the sidebar. State is persisted via `mw.storage` under a key namespaced by wiki ID (safe on wiki farms), and **only when the user explicitly clicks the button**; the breakpoint watcher never overwrites the stored preference.
+3. **Mobile toggle** — Inserts a `<button class="cargo-filters-toggle">` directly before the sidebar. Hidden by default in CSS; shown at mobile breakpoints via PHP inline `@media` once the flex wrapper exists. Toggles the `cargo-filters-collapsed` class on the sidebar. The `.cargo-mobile-layout` class (added by the JS `matchMedia` watcher) owns toggle *state* and suppresses sticky positioning on mobile — it is not the source of toggle visibility. State is persisted via `mw.storage` under a key namespaced by wiki ID (safe on wiki farms), and **only when the user explicitly clicks the button**; the breakpoint watcher never overwrites the stored preference.
 
 ### CSS — `modules/ext.SaintapediaDrilldown.css`
 
-All selectors are scoped to `.cargo-drilldown-layout`, so **no other wiki page is affected**.
+Layout and toggle selectors are scoped to `.cargo-drilldown-layout`; chip selectors are scoped to `.drilldown-results` so chips render correctly even when the flex wrapper cannot be created. **No other wiki page is affected.**
 
 - CSS custom properties (`--cargo-sidebar-width`, `--cargo-filter-bg`, etc.) allow visual tweaks from `MediaWiki:Common.css` without editing extension files.
 - `position: sticky` is applied via the `.cargo-filters-sticky` class (added by JS when `$wgSaintapediaDrilldownStickyFilters = true`), and is only active when the `.cargo-mobile-layout` class is absent.
