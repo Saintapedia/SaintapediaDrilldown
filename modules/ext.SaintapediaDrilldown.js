@@ -173,6 +173,7 @@
 		if ( cls ) {
 			// The following CSS classes are used here:
 			// * cargo-drilldown-layout
+			// * cargo-drilldown-table-tabs
 			// * cargo-active-filters
 			// * cargo-filter-chip
 			// * cargo-chip-label
@@ -205,16 +206,17 @@
 	 *           ├── div.drilldown-filters-wrapper (extracted from inside results)
 	 *           └── div.drilldown-results         (original container, minus filters/tabs)
 	 */
-	function applyFlexLayout( filtersEl, resultsEl ) {
-		var contentEl = resultsEl.parentElement;
+	function applyFlexLayout( filtersEl, resultsEl, contentEl ) {
 		if ( !contentEl ) {
 			mw.log.warn( 'SaintapediaDrilldown: .drilldown-results has no parent; sidebar layout skipped.' );
 			return null;
 		}
 
 		// Hoist the table-tabs wrapper above the flex layout so it spans full width.
+		// Cargo emits a fixed id; add a class so CSS can target it without an ID selector.
 		var tabsEl = contentEl.querySelector( '#drilldown-tables-tabs-wrapper' );
 		if ( tabsEl ) {
+			tabsEl.classList.add( 'cargo-drilldown-table-tabs' );
 			contentEl.insertBefore( tabsEl, resultsEl );
 		}
 
@@ -361,7 +363,7 @@
 		if ( resultsEl.dataset.saintapediadrilldownInit ) { return; }
 		resultsEl.dataset.saintapediadrilldownInit = '1';
 
-		var layoutEl = applyFlexLayout( filtersEl, resultsEl );
+		var layoutEl = applyFlexLayout( filtersEl, resultsEl, contentEl );
 
 		if ( cfg.showChips ) { renderFilterChips( resultsEl ); }
 		// Layout wrapper required for sidebar width, sticky, and toggle.
