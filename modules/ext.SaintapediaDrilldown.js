@@ -208,7 +208,7 @@
 	 */
 	function applyFlexLayout( filtersEl, resultsEl, contentEl ) {
 		if ( !contentEl ) {
-			mw.log.warn( 'SaintapediaDrilldown: .drilldown-results has no parent; sidebar layout skipped.' );
+			mw.log.warn( 'SaintapediaDrilldown: content element not found; sidebar layout skipped.' );
 			return null;
 		}
 
