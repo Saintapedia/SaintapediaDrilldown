@@ -20,6 +20,12 @@
 	}
 }
 
+/* 1a. Hoisted table-tabs bar — full width above the flex layout (Cargo 3.x) */
+#drilldown-tables-tabs-wrapper {
+	width: 100%;
+	margin-bottom: 0.5em;
+}
+
 /* 1. Flex container (custom properties and layout in one block) */
 .cargo-drilldown-layout {
 	--cargo-sidebar-width: 280px;
