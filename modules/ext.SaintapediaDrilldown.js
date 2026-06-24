@@ -192,19 +192,25 @@
 	 * Cargo 3.x DOM structure (verified against saintapedia.org / Cargo 3.5.1):
 	 *
 	 *   #mw-content-text
-	 *     └── div.drilldown-results          (everything is inside this one div)
-	 *           └── div.mw-spcontent
+	 *     └── div.drilldown-results
+	 *           └── div.mw-spcontent                          (intermediate wrapper)
 	 *                 ├── div#drilldown-tables-tabs-wrapper   (table selector tabs)
 	 *                 ├── div#drilldown-header
-	 *                 └── div.drilldown-filters-wrapper       (filters, nested inside results)
+	 *                 └── div.drilldown-filters-wrapper
 	 *
-	 * We restructure to:
+	 * We restructure mw-spcontent in place to:
 	 *
 	 *   #mw-content-text
-	 *     ├── div#drilldown-tables-tabs-wrapper  (hoisted out, above the flex layout)
-	 *     └── div.cargo-drilldown-layout         (new flex wrapper)
-	 *           ├── div.drilldown-filters-wrapper (extracted from inside results)
-	 *           └── div.drilldown-results         (original container, minus filters/tabs)
+	 *     └── div.drilldown-results
+	 *           └── div.mw-spcontent
+	 *                 ├── div.cargo-drilldown-table-tabs  (tabs, full-width above layout)
+	 *                 └── div.cargo-drilldown-layout      (new flex wrapper)
+	 *                       ├── div.drilldown-filters-wrapper
+	 *                       └── div#drilldown-header + results content
+	 *
+	 * Key insight: insertBefore only works on a node's direct parent. Since
+	 * filtersEl is a child of mw-spcontent (not #mw-content-text), all DOM
+	 * mutations must operate on mw-spcontent as the reference parent.
 	 */
 	function applyFlexLayout( filtersEl, resultsEl, contentEl ) {
 		if ( !contentEl ) {
@@ -212,25 +218,37 @@
 			return null;
 		}
 
-		// Hoist the table-tabs wrapper above the flex layout so it spans full width.
-		// Cargo emits a fixed id; add a class so CSS can target it without an ID selector.
-		var tabsEl = contentEl.querySelector( '#drilldown-tables-tabs-wrapper' );
+		// The shared parent of both tabs and filters is mw-spcontent (inside resultsEl).
+		// Fall back to resultsEl itself if mw-spcontent is absent.
+		var spContent = resultsEl.querySelector( '.mw-spcontent' ) || resultsEl;
+
+		// Hoist the table-tabs wrapper to the top of spContent so it stays full-width.
+		// Add a class so CSS can target it without an ID selector.
+		var tabsEl = spContent.querySelector( '#drilldown-tables-tabs-wrapper' );
 		if ( tabsEl ) {
 			tabsEl.classList.add( 'cargo-drilldown-table-tabs' );
-			contentEl.insertBefore( tabsEl, resultsEl );
+			spContent.insertBefore( tabsEl, spContent.firstChild );
 		}
 
-		// Extract filters from inside results and place before results.
-		// filtersEl may already be a direct child of resultsEl or nested deeper.
-		if ( filtersEl.parentElement !== contentEl ) {
-			contentEl.insertBefore( filtersEl, resultsEl );
-		}
-
-		// Wrap filters + results in the flex sidebar container.
+		// Build the flex wrapper as the next sibling of the hoisted tabs.
 		var wrapper = el( 'div', 'cargo-drilldown-layout' );
-		contentEl.insertBefore( wrapper, filtersEl );
+		// Insert wrapper after tabsEl (or at top if no tabs).
+		var insertRef = tabsEl ? tabsEl.nextSibling : spContent.firstChild;
+		spContent.insertBefore( wrapper, insertRef );
+
+		// Move filters and the rest of spContent's children into the flex wrapper.
+		// filtersEl goes first (left sidebar), then everything else (results column).
 		wrapper.appendChild( filtersEl );
-		wrapper.appendChild( resultsEl );
+		var resultsContent = el( 'div', 'drilldown-results-content' );
+		// Drain remaining children (header, results list, pagination) into results col.
+		while ( spContent.firstChild && spContent.firstChild !== wrapper ) {
+			resultsContent.appendChild( spContent.firstChild );
+		}
+		// Append any children added after wrapper too (pagination etc. at end).
+		while ( wrapper.nextSibling ) {
+			resultsContent.appendChild( wrapper.nextSibling );
+		}
+		wrapper.appendChild( resultsContent );
 		return wrapper;
 	}
 
@@ -365,9 +383,12 @@
 
 		var layoutEl = applyFlexLayout( filtersEl, resultsEl, contentEl );
 
-		if ( cfg.showChips ) { renderFilterChips( resultsEl ); }
 		// Layout wrapper required for sidebar width, sticky, and toggle.
 		if ( !layoutEl ) { return; }
+
+		// Chips go into the results content column JS created inside the flex layout.
+		var resultsContentEl = layoutEl.querySelector( '.drilldown-results-content' );
+		if ( cfg.showChips && resultsContentEl ) { renderFilterChips( resultsContentEl ); }
 
 		layoutEl.style.setProperty( '--cargo-sidebar-width', cfg.sidebarWidth + 'px' );
 		if ( cfg.stickyFilters ) { filtersEl.classList.add( 'cargo-filters-sticky' ); }

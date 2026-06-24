@@ -75,7 +75,7 @@ class Hooks implements BeforePageDisplayHook {
 	private function mobileBreakpointCss( int $bp ): string {
 		$mobileCss =
 			'.cargo-drilldown-layout{flex-direction:column}' .
-			'.cargo-drilldown-layout .drilldown-results{order:1;width:100%}' .
+			'.cargo-drilldown-layout .drilldown-results-content{order:1;width:100%}' .
 			'.cargo-drilldown-layout .drilldown-filters-wrapper' .
 				'{order:2;flex:none;width:100%;max-width:none;position:static;max-height:none;overflow:visible}' .
 			'.cargo-drilldown-layout .drilldown-filters-wrapper.cargo-filters-collapsed{display:none}' .
