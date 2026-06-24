@@ -12,6 +12,7 @@ namespace MediaWiki\Extension\SaintapediaDrilldown;
 
 use ExtensionRegistry;
 use MediaWiki\Hook\BeforePageDisplayHook;
+use MediaWiki\Logger\LoggerFactory;
 
 class Hooks implements BeforePageDisplayHook {
 
@@ -21,8 +22,8 @@ class Hooks implements BeforePageDisplayHook {
 	 */
 	public function onBeforePageDisplay( $out, $skin ): void {
 		if ( !ExtensionRegistry::getInstance()->isLoaded( 'Cargo' ) ) {
-			wfLogWarning(
-				'SaintapediaDrilldown: Cargo is not loaded; enable Cargo before SaintapediaDrilldown.'
+			LoggerFactory::getInstance( 'SaintapediaDrilldown' )->warning(
+				'Cargo is not loaded; enable Cargo before SaintapediaDrilldown.'
 			);
 			return;
 		}
@@ -43,13 +44,16 @@ class Hooks implements BeforePageDisplayHook {
 		$rawBreakpoint = (int)$config->get( 'SaintapediaDrilldownMobileBreakpoint' );
 		$sidebarWidth  = max( 120, min( 800, $rawWidth ) );
 		$mobileBreak   = max( 320, min( 1600, $rawBreakpoint ) );
+		$logger = LoggerFactory::getInstance( 'SaintapediaDrilldown' );
 		if ( $sidebarWidth !== $rawWidth ) {
-			wfLogWarning( 'SaintapediaDrilldown: SaintapediaDrilldownSidebarWidth value ' . $rawWidth .
-				' is out of range [120, 800]; clamped to ' . $sidebarWidth . '.' );
+			$logger->warning( 'SaintapediaDrilldownSidebarWidth value {value} is out of range [120, 800]; clamped to {clamped}.', [
+				'value' => $rawWidth, 'clamped' => $sidebarWidth,
+			] );
 		}
 		if ( $mobileBreak !== $rawBreakpoint ) {
-			wfLogWarning( 'SaintapediaDrilldown: SaintapediaDrilldownMobileBreakpoint value ' . $rawBreakpoint .
-				' is out of range [320, 1600]; clamped to ' . $mobileBreak . '.' );
+			$logger->warning( 'SaintapediaDrilldownMobileBreakpoint value {value} is out of range [320, 1600]; clamped to {clamped}.', [
+				'value' => $rawBreakpoint, 'clamped' => $mobileBreak,
+			] );
 		}
 
 		$out->addJsConfigVars( [

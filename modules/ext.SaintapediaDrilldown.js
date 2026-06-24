@@ -365,6 +365,14 @@
 	/* -- Main init ----------------------------------------------------- */
 
 	function init() {
+		// Guard: bail out if not on Special:Drilldown.
+		// Hooks.php only queues this module on Drilldown pages, but this prevents
+		// any interference if Canasta's ResourceLoader cache serves it elsewhere
+		// (e.g. VE edit surface or WikiEditor toolbar pages).
+		if ( mw.config.get( 'wgCanonicalSpecialPageName' ) !== 'Drilldown' ) {
+			return;
+		}
+
 		var contentEl = document.querySelector( '#mw-content-text' );
 		// Cargo 3.x nests .drilldown-filters-wrapper inside .drilldown-results;
 		// search the whole content area, not just immediate children.
