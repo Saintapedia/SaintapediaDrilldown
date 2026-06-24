@@ -55,6 +55,20 @@ Add the following line to `LocalSettings.php` **after** the Cargo `wfLoadExtensi
 wfLoadExtension( 'SaintapediaDrilldown' );
 ```
 
+> **Canasta users (user-extensions):** Do not edit `LocalSettings.php` inside the
+> container. This extension is a [user extension](https://canasta.wiki/wiki/Help:Extensions_and_skins#Adding_extensions_not_bundled_with_Canasta):
+>
+> 1. Clone or copy into your instance's host `extensions/SaintapediaDrilldown/`
+> 2. Enable Cargo first: `canasta extension enable Cargo`
+> 3. Create `config/settings/global/SaintapediaDrilldown.php`:
+>    ```php
+>    <?php
+>    wfLoadExtension( 'SaintapediaDrilldown' );
+>    ```
+> 4. `canasta restart`
+>
+> To disable: remove that settings file and restart. Optional: `install.sh` automates the same steps.
+
 ### 3 — Clear caches
 
 ```bash

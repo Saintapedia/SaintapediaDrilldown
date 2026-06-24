@@ -7,10 +7,7 @@
 	"license-name": "MIT",
 	"type": "other",
 	"requires": {
-		"MediaWiki": ">= 1.39.0",
-		"extensions": {
-			"Cargo": ">= 3.0"
-		}
+		"MediaWiki": ">= 1.39.0"
 	},
 	"AutoloadNamespaces": {
 		"MediaWiki\\Extension\\SaintapediaDrilldown\\": "includes/"

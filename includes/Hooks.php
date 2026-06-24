@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 
 namespace MediaWiki\Extension\SaintapediaDrilldown;
 
+use ExtensionRegistry;
 use MediaWiki\Hook\BeforePageDisplayHook;
 
 class Hooks implements BeforePageDisplayHook {
@@ -19,6 +20,13 @@ class Hooks implements BeforePageDisplayHook {
 	 * @param \Skin $skin
 	 */
 	public function onBeforePageDisplay( $out, $skin ): void {
+		if ( !ExtensionRegistry::getInstance()->isLoaded( 'Cargo' ) ) {
+			wfLogWarning(
+				'SaintapediaDrilldown: Cargo is not loaded; enable Cargo before SaintapediaDrilldown.'
+			);
+			return;
+		}
+
 		$config = $out->getConfig();
 
 		if ( !$config->get( 'SaintapediaDrilldownSidebarEnabled' ) ) {
