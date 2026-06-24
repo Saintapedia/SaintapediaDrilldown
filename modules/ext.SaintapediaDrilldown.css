@@ -1,8 +1,8 @@
 /* ==========================================================================
    SaintapediaDrilldown — Sidebar layout for Cargo's Special:Drilldown
    Layout/toggle rules are scoped to .cargo-drilldown-layout (added by JS).
-   Chip rules are scoped to .drilldown-results so they render even when the
-   flex wrapper cannot be created (parent mismatch).
+   Chip rules are scoped to .drilldown-results-content (the JS-created results
+   column inside the flex wrapper).
    ========================================================================== */
 
 /* 0. Pre-JS mobile fallback — stacks Cargo's default markup on narrow viewports
@@ -78,14 +78,14 @@
 	border-radius: 3px;
 }
 
-/* 3. Results area */
-.cargo-drilldown-layout .drilldown-results {
+/* 3. Results area — JS wraps content in .drilldown-results-content inside the flex layout */
+.cargo-drilldown-layout .drilldown-results-content {
 	flex: 1 1 0;
 	min-width: 0;
 }
 
 /* 4. Active-filter chips bar */
-.drilldown-results .cargo-active-filters {
+.drilldown-results-content .cargo-active-filters {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -98,11 +98,11 @@
 	font-size: 0.875em;
 }
 
-.drilldown-results .cargo-active-filters:empty {
+.drilldown-results-content .cargo-active-filters:empty {
 	display: none;
 }
 
-.drilldown-results .cargo-filter-chip {
+.drilldown-results-content .cargo-filter-chip {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.25em;
@@ -115,11 +115,11 @@
 	line-height: 1.4;
 }
 
-.drilldown-results .cargo-chip-label {
+.drilldown-results-content .cargo-chip-label {
 	color: inherit;
 }
 
-.drilldown-results a.cargo-chip-remove {
+.drilldown-results-content a.cargo-chip-remove {
 	display: inline-block;
 	color: #555;
 	font-weight: bold;
@@ -129,30 +129,30 @@
 	cursor: pointer;
 }
 
-.drilldown-results a.cargo-chip-remove:hover,
-.drilldown-results a.cargo-chip-remove:focus {
+.drilldown-results-content a.cargo-chip-remove:hover,
+.drilldown-results-content a.cargo-chip-remove:focus {
 	color: #c00;
 	text-decoration: none;
 }
 
-.drilldown-results a.cargo-chip-remove:focus-visible {
+.drilldown-results-content a.cargo-chip-remove:focus-visible {
 	outline: 2px solid #3680b0;
 	outline-offset: 2px;
 	border-radius: 2px;
 }
 
 /* margin-inline-start for RTL support (CSSJanus-safe) */
-.drilldown-results .cargo-clear-all {
+.drilldown-results-content .cargo-clear-all {
 	margin-inline-start: auto;
 	white-space: nowrap;
 }
 
-.drilldown-results .cargo-clear-all a {
+.drilldown-results-content .cargo-clear-all a {
 	color: #555;
 	font-size: 0.9em;
 }
 
-.drilldown-results .cargo-clear-all a:hover {
+.drilldown-results-content .cargo-clear-all a:hover {
 	color: #c00;
 }
 

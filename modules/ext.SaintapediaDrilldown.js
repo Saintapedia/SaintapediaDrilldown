@@ -192,19 +192,26 @@
 	 * Cargo 3.x DOM structure (verified against saintapedia.org / Cargo 3.5.1):
 	 *
 	 *   #mw-content-text
-	 *     └── div.drilldown-results          (everything is inside this one div)
-	 *           └── div.mw-spcontent
+	 *     └── div.drilldown-results
+	 *           └── div.mw-spcontent                          (intermediate wrapper)
 	 *                 ├── div#drilldown-tables-tabs-wrapper   (table selector tabs)
 	 *                 ├── div#drilldown-header
-	 *                 └── div.drilldown-filters-wrapper       (filters, nested inside results)
+	 *                 └── div.drilldown-filters-wrapper
 	 *
-	 * We restructure to:
+	 * We restructure mw-spcontent in place to:
 	 *
 	 *   #mw-content-text
-	 *     ├── div#drilldown-tables-tabs-wrapper  (hoisted out, above the flex layout)
-	 *     └── div.cargo-drilldown-layout         (new flex wrapper)
-	 *           ├── div.drilldown-filters-wrapper (extracted from inside results)
-	 *           └── div.drilldown-results         (original container, minus filters/tabs)
+	 *     └── div.drilldown-results
+	 *           └── div.mw-spcontent
+	 *                 ├── div.cargo-drilldown-table-tabs  (hoisted; full-width above flex)
+	 *                 └── div.cargo-drilldown-layout      (flex wrapper)
+	 *                       ├── div.drilldown-filters-wrapper  (left sidebar)
+	 *                       └── div.drilldown-results-content  (right column)
+	 *                             └── div#drilldown-header + results + pagination
+	 *
+	 * Key insight: insertBefore only works on a node's direct parent. Since
+	 * filtersEl is a child of mw-spcontent (not #mw-content-text), all DOM
+	 * mutations must operate on mw-spcontent as the reference parent.
 	 */
 	function applyFlexLayout( filtersEl, resultsEl, contentEl ) {
 		if ( !contentEl ) {
@@ -212,25 +219,38 @@
 			return null;
 		}
 
-		// Hoist the table-tabs wrapper above the flex layout so it spans full width.
-		// Cargo emits a fixed id; add a class so CSS can target it without an ID selector.
-		var tabsEl = contentEl.querySelector( '#drilldown-tables-tabs-wrapper' );
+		// The shared parent of both tabs and filters is mw-spcontent (inside resultsEl).
+		// Fall back to resultsEl itself if mw-spcontent is absent.
+		var spContent = resultsEl.querySelector( '.mw-spcontent' ) || resultsEl;
+
+		// Hoist the table-tabs wrapper to the top of spContent so it stays full-width.
+		// Add a class so CSS can target it without an ID selector.
+		var tabsEl = spContent.querySelector( '#drilldown-tables-tabs-wrapper' );
 		if ( tabsEl ) {
 			tabsEl.classList.add( 'cargo-drilldown-table-tabs' );
-			contentEl.insertBefore( tabsEl, resultsEl );
+			spContent.insertBefore( tabsEl, spContent.firstChild );
 		}
 
-		// Extract filters from inside results and place before results.
-		// filtersEl may already be a direct child of resultsEl or nested deeper.
-		if ( filtersEl.parentElement !== contentEl ) {
-			contentEl.insertBefore( filtersEl, resultsEl );
-		}
-
-		// Wrap filters + results in the flex sidebar container.
+		// Build the flex wrapper as the next sibling of the hoisted tabs.
 		var wrapper = el( 'div', 'cargo-drilldown-layout' );
-		contentEl.insertBefore( wrapper, filtersEl );
+		// Insert wrapper after tabsEl (or at top if no tabs).
+		var insertRef = tabsEl ? tabsEl.nextSibling : spContent.firstChild;
+		spContent.insertBefore( wrapper, insertRef );
+
+		// Move filters into the flex wrapper (left sidebar).
 		wrapper.appendChild( filtersEl );
-		wrapper.appendChild( resultsEl );
+
+		// Drain only the siblings AFTER wrapper into the results column.
+		// Siblings BEFORE wrapper (i.e. tabsEl, if present) stay in place so
+		// they remain full-width above the flex layout.
+		var resultsContent = el( 'div', 'drilldown-results-content' );
+		var sibling = wrapper.nextSibling;
+		while ( sibling ) {
+			var next = sibling.nextSibling;
+			resultsContent.appendChild( sibling );
+			sibling = next;
+		}
+		wrapper.appendChild( resultsContent );
 		return wrapper;
 	}
 
@@ -347,6 +367,14 @@
 	/* -- Main init ----------------------------------------------------- */
 
 	function init() {
+		// Guard: bail out if not on Special:Drilldown.
+		// Hooks.php only queues this module on Drilldown pages, but this prevents
+		// any interference if Canasta's ResourceLoader cache serves it elsewhere
+		// (e.g. VE edit surface or WikiEditor toolbar pages).
+		if ( mw.config.get( 'wgCanonicalSpecialPageName' ) !== 'Drilldown' ) {
+			return;
+		}
+
 		var contentEl = document.querySelector( '#mw-content-text' );
 		// Cargo 3.x nests .drilldown-filters-wrapper inside .drilldown-results;
 		// search the whole content area, not just immediate children.
@@ -365,9 +393,12 @@
 
 		var layoutEl = applyFlexLayout( filtersEl, resultsEl, contentEl );
 
-		if ( cfg.showChips ) { renderFilterChips( resultsEl ); }
 		// Layout wrapper required for sidebar width, sticky, and toggle.
 		if ( !layoutEl ) { return; }
+
+		// Chips go into the results content column JS created inside the flex layout.
+		var resultsContentEl = layoutEl.querySelector( '.drilldown-results-content' );
+		if ( cfg.showChips && resultsContentEl ) { renderFilterChips( resultsContentEl ); }
 
 		layoutEl.style.setProperty( '--cargo-sidebar-width', cfg.sidebarWidth + 'px' );
 		if ( cfg.stickyFilters ) { filtersEl.classList.add( 'cargo-filters-sticky' ); }

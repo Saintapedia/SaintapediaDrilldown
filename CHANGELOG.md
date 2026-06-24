@@ -3,6 +3,20 @@
 All notable changes are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.5.0] — 2026-06-24
+
+### Fixed
+
+- **`insertBefore` parent mismatch (sidebar never rendered)** — `applyFlexLayout()`
+  was calling `contentEl.insertBefore(filtersEl, resultsEl)` where `contentEl` is
+  `#mw-content-text`, but `filtersEl.parentElement` is `div.mw-spcontent` (a
+  grandchild of `#mw-content-text`). Browsers silently ignore `insertBefore` when
+  the reference node is not a direct child of the target parent, so the sidebar flex
+  wrapper was never created. Fix: operate on `mw-spcontent` as the reference parent —
+  hoist tabs and insert the flex wrapper inside it, then drain its remaining children
+  into a new `.drilldown-results-content` div. All CSS and mobile PHP selectors
+  updated from `.drilldown-results` to `.drilldown-results-content` accordingly.
+
 ## [0.4.0] — 2026-06-24
 
 ### Fixed
