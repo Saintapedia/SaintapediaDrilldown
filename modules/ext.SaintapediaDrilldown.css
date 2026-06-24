@@ -1,8 +1,8 @@
 /* ==========================================================================
    SaintapediaDrilldown — Sidebar layout for Cargo's Special:Drilldown
    Layout/toggle rules are scoped to .cargo-drilldown-layout (added by JS).
-   Chip rules are scoped to .drilldown-results so they render even when the
-   flex wrapper cannot be created (parent mismatch).
+   Chip rules are scoped to .drilldown-results-content (the JS-created results
+   column inside the flex wrapper).
    ========================================================================== */
 
 /* 0. Pre-JS mobile fallback — stacks Cargo's default markup on narrow viewports

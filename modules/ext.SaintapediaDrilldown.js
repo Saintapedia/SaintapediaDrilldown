@@ -203,10 +203,11 @@
 	 *   #mw-content-text
 	 *     └── div.drilldown-results
 	 *           └── div.mw-spcontent
-	 *                 ├── div.cargo-drilldown-table-tabs  (tabs, full-width above layout)
-	 *                 └── div.cargo-drilldown-layout      (new flex wrapper)
-	 *                       ├── div.drilldown-filters-wrapper
-	 *                       └── div#drilldown-header + results content
+	 *                 ├── div.cargo-drilldown-table-tabs  (hoisted; full-width above flex)
+	 *                 └── div.cargo-drilldown-layout      (flex wrapper)
+	 *                       ├── div.drilldown-filters-wrapper  (left sidebar)
+	 *                       └── div.drilldown-results-content  (right column)
+	 *                             └── div#drilldown-header + results + pagination
 	 *
 	 * Key insight: insertBefore only works on a node's direct parent. Since
 	 * filtersEl is a child of mw-spcontent (not #mw-content-text), all DOM
@@ -236,17 +237,18 @@
 		var insertRef = tabsEl ? tabsEl.nextSibling : spContent.firstChild;
 		spContent.insertBefore( wrapper, insertRef );
 
-		// Move filters and the rest of spContent's children into the flex wrapper.
-		// filtersEl goes first (left sidebar), then everything else (results column).
+		// Move filters into the flex wrapper (left sidebar).
 		wrapper.appendChild( filtersEl );
+
+		// Drain only the siblings AFTER wrapper into the results column.
+		// Siblings BEFORE wrapper (i.e. tabsEl, if present) stay in place so
+		// they remain full-width above the flex layout.
 		var resultsContent = el( 'div', 'drilldown-results-content' );
-		// Drain remaining children (header, results list, pagination) into results col.
-		while ( spContent.firstChild && spContent.firstChild !== wrapper ) {
-			resultsContent.appendChild( spContent.firstChild );
-		}
-		// Append any children added after wrapper too (pagination etc. at end).
-		while ( wrapper.nextSibling ) {
-			resultsContent.appendChild( wrapper.nextSibling );
+		var sibling = wrapper.nextSibling;
+		while ( sibling ) {
+			var next = sibling.nextSibling;
+			resultsContent.appendChild( sibling );
+			sibling = next;
 		}
 		wrapper.appendChild( resultsContent );
 		return wrapper;
