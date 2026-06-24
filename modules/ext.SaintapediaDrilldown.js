@@ -173,6 +173,7 @@
 		if ( cls ) {
 			// The following CSS classes are used here:
 			// * cargo-drilldown-layout
+			// * cargo-drilldown-table-tabs
 			// * cargo-active-filters
 			// * cargo-filter-chip
 			// * cargo-chip-label
@@ -187,14 +188,47 @@
 
 	/* -- Feature: flex layout wrapper ---------------------------------- */
 
-	function applyFlexLayout( filtersEl, resultsEl ) {
-		var parent = filtersEl.parentElement;
-		if ( resultsEl.parentElement !== parent ) {
-			mw.log.warn( 'SaintapediaDrilldown: filters and results do not share a parent; sidebar layout skipped.' );
+	/**
+	 * Cargo 3.x DOM structure (verified against saintapedia.org / Cargo 3.5.1):
+	 *
+	 *   #mw-content-text
+	 *     └── div.drilldown-results          (everything is inside this one div)
+	 *           └── div.mw-spcontent
+	 *                 ├── div#drilldown-tables-tabs-wrapper   (table selector tabs)
+	 *                 ├── div#drilldown-header
+	 *                 └── div.drilldown-filters-wrapper       (filters, nested inside results)
+	 *
+	 * We restructure to:
+	 *
+	 *   #mw-content-text
+	 *     ├── div#drilldown-tables-tabs-wrapper  (hoisted out, above the flex layout)
+	 *     └── div.cargo-drilldown-layout         (new flex wrapper)
+	 *           ├── div.drilldown-filters-wrapper (extracted from inside results)
+	 *           └── div.drilldown-results         (original container, minus filters/tabs)
+	 */
+	function applyFlexLayout( filtersEl, resultsEl, contentEl ) {
+		if ( !contentEl ) {
+			mw.log.warn( 'SaintapediaDrilldown: content element not found; sidebar layout skipped.' );
 			return null;
 		}
+
+		// Hoist the table-tabs wrapper above the flex layout so it spans full width.
+		// Cargo emits a fixed id; add a class so CSS can target it without an ID selector.
+		var tabsEl = contentEl.querySelector( '#drilldown-tables-tabs-wrapper' );
+		if ( tabsEl ) {
+			tabsEl.classList.add( 'cargo-drilldown-table-tabs' );
+			contentEl.insertBefore( tabsEl, resultsEl );
+		}
+
+		// Extract filters from inside results and place before results.
+		// filtersEl may already be a direct child of resultsEl or nested deeper.
+		if ( filtersEl.parentElement !== contentEl ) {
+			contentEl.insertBefore( filtersEl, resultsEl );
+		}
+
+		// Wrap filters + results in the flex sidebar container.
 		var wrapper = el( 'div', 'cargo-drilldown-layout' );
-		parent.insertBefore( wrapper, filtersEl );
+		contentEl.insertBefore( wrapper, filtersEl );
 		wrapper.appendChild( filtersEl );
 		wrapper.appendChild( resultsEl );
 		return wrapper;
@@ -314,18 +348,22 @@
 
 	function init() {
 		var contentEl = document.querySelector( '#mw-content-text' );
-		var filtersEl = contentEl ? contentEl.querySelector( '.drilldown-filters-wrapper' ) : null;
+		// Cargo 3.x nests .drilldown-filters-wrapper inside .drilldown-results;
+		// search the whole content area, not just immediate children.
 		var resultsEl = contentEl ? contentEl.querySelector( '.drilldown-results' ) : null;
-		if ( !filtersEl || !resultsEl ) {
-			mw.log.warn( 'SaintapediaDrilldown: Cargo selectors not found (' +
-				( filtersEl ? '' : '.drilldown-filters-wrapper ' ) +
-				( resultsEl ? '' : '.drilldown-results' ) + 'missing).' );
+		var filtersEl = contentEl ? contentEl.querySelector( '.drilldown-filters-wrapper' ) : null;
+		if ( !resultsEl ) {
+			mw.log.warn( 'SaintapediaDrilldown: .drilldown-results not found; layout skipped.' );
 			return;
 		}
-		if ( filtersEl.dataset.saintapediadrilldownInit ) { return; }
-		filtersEl.dataset.saintapediadrilldownInit = '1';
+		if ( !filtersEl ) {
+			mw.log.warn( 'SaintapediaDrilldown: .drilldown-filters-wrapper not found; layout skipped.' );
+			return;
+		}
+		if ( resultsEl.dataset.saintapediadrilldownInit ) { return; }
+		resultsEl.dataset.saintapediadrilldownInit = '1';
 
-		var layoutEl = applyFlexLayout( filtersEl, resultsEl );
+		var layoutEl = applyFlexLayout( filtersEl, resultsEl, contentEl );
 
 		if ( cfg.showChips ) { renderFilterChips( resultsEl ); }
 		// Layout wrapper required for sidebar width, sticky, and toggle.

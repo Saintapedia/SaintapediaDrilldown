@@ -230,6 +230,7 @@ body.special-SpecialDrilldown .cargo-drilldown-layout {
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
 | Sidebar doesn't appear; filters still above results | Cargo selectors not matching | Open DevTools → Console; a `SaintapediaDrilldown:` warning will name the missing selector if the elements were not found. |
+| Table tabs become a vertical list | Cargo 3.x nests the tabs inside `.drilldown-results`; extension restructures the DOM at runtime to hoist tabs above the flex container. Ensure you are running v0.4+. | `git pull` in the extension directory and restart containers. |
 | Layout unchanged despite extension loading | Custom drilldown CSS in `MediaWiki:Common.css` conflicting with the extension's styles | Remove or comment out any old rules targeting `.drilldown-filters-wrapper` / `.drilldown-results`. |
 | Filter chips not showing | No active URL filters | Click a filter value on the drilldown; chips appear once filters are applied. |
 | Extension module not loading | `wfLoadExtension` missing or wrong order | Confirm `LocalSettings.php` edit; Cargo must load before SaintapediaDrilldown. |

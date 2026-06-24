@@ -3,6 +3,21 @@
 All notable changes are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.4.0] — 2026-06-24
+
+### Fixed
+
+- **Cargo 3.x DOM compatibility** — Cargo 3.5.x nests `.drilldown-filters-wrapper`
+  *inside* `.drilldown-results` rather than alongside it, so `applyFlexLayout()`
+  always bailed (sibling check failed) and no sidebar ever appeared. The init
+  function now extracts the filters wrapper out of results, hoists the
+  `#drilldown-tables-tabs-wrapper` above the flex container (fixes tabs → vertical
+  list regression), and builds the sidebar layout correctly on the real Cargo DOM.
+- **Canasta boot-time 500 fix** — removed the hard `"Cargo": ">= 3.0"` requirement
+  from `extension.json`; replaced with a runtime `ExtensionRegistry::isLoaded()`
+  check that logs a warning instead of fataling when Canasta's settings-file load
+  order places SaintapediaDrilldown before Cargo.
+
 ## [0.3.0] — 2026-06-22
 
 ### Fixed

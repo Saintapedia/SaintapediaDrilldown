@@ -20,6 +20,14 @@
 	}
 }
 
+/* 1a. Hoisted table-tabs bar — full width above the flex layout (Cargo 3.x).
+      JS adds .cargo-drilldown-table-tabs to Cargo's fixed #drilldown-tables-tabs-wrapper
+      so we can target it without an ID selector. */
+.cargo-drilldown-table-tabs {
+	width: 100%;
+	margin-bottom: 0.5em;
+}
+
 /* 1. Flex container (custom properties and layout in one block) */
 .cargo-drilldown-layout {
 	--cargo-sidebar-width: 280px;
