@@ -80,9 +80,9 @@ class Hooks implements BeforePageDisplayHook {
 		$mobileCss =
 			'.cargo-drilldown-layout{flex-direction:column}' .
 			'.cargo-drilldown-layout .drilldown-results-content{order:1;width:100%}' .
-			'.cargo-drilldown-layout .drilldown-filters-wrapper' .
+			'.cargo-drilldown-layout .drilldown-filters' .
 				'{order:2;flex:none;width:100%;max-width:none;position:static;max-height:none;overflow:visible}' .
-			'.cargo-drilldown-layout .drilldown-filters-wrapper.cargo-filters-collapsed{display:none}' .
+			'.cargo-drilldown-layout .drilldown-filters.cargo-filters-collapsed{display:none}' .
 			'.cargo-drilldown-layout .cargo-filters-toggle{display:block;order:2;margin-top:0.5em}';
 
 		return '@media(max-width:' . ( $bp - 1 ) . 'px){' . $mobileCss . '}';

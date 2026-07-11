@@ -25,7 +25,7 @@ A [MediaWiki](https://www.mediawiki.org/) extension that modernises the faceted-
 | Dependency | Minimum version | Notes |
 |------------|-----------------|-------|
 | [MediaWiki](https://www.mediawiki.org/wiki/Download) | **1.39** | Uses `HookHandlers` registration; config is read via `OutputPage::getConfig()` so no service wiring is required |
-| [Cargo](https://www.mediawiki.org/wiki/Extension:Cargo) | **>= 3.0** | Provides `Special:Drilldown` and the `.drilldown-filters-wrapper` / `.drilldown-results` DOM class names this extension targets. These are an undocumented contract; a browser console warning identifies missing selectors if Cargo changes them. |
+| [Cargo](https://www.mediawiki.org/wiki/Extension:Cargo) | **>= 3.0** | Provides `Special:Drilldown` and the `.drilldown-filters` / `.drilldown-results` DOM class names this extension targets. These are an undocumented contract; a browser console warning identifies missing selectors if Cargo changes them. |
 | PHP | **7.4+** | Compatible with PHP 7.4 and 8.x |
 
 > **Skin compatibility** — tested against Vector (legacy) and Vector 2022. Should work with any skin because the extension locates Cargo's elements by class name rather than a fixed DOM path.
@@ -181,7 +181,7 @@ The module is **only loaded on drilldown pages**, keeping its footprint zero on 
 
 Runs after content is ready via `mw.hook('wikipage.content')`.
 
-1. **Flex wrapper** — Locates `.drilldown-filters-wrapper` and `.drilldown-results` inside `#mw-content-text`. If they share a parent it wraps them in a new `<div class="cargo-drilldown-layout">` flex container. If they do not share a parent the sidebar layout and mobile toggle are skipped (a console warning identifies the problem), but filter chips are still rendered above `.drilldown-results` so they remain useful.
+1. **Flex wrapper** — Locates `.drilldown-filters` and `.drilldown-results` inside `#mw-content-text`. Cargo nests `.drilldown-filters` inside `.drilldown-results`; the extension extracts it and builds a new `<div class="cargo-drilldown-layout">` flex container with the filters as a sidebar and the remaining results content in a `.drilldown-results-content` column. If either element is missing the sidebar layout and mobile toggle are skipped (a console warning identifies the problem).
 
 2. **Filter chips** — Parses `window.location.search` and renders a labelled chip for every user-applied filter. Cargo-internal params (those beginning with `_`) and a reserved list of MediaWiki params (`title`, `action`, `uselang`, `useskin`, `debug`, …) are skipped — with one exception: `_search_*` text-search params **do** render as chips ("Name (search)"). Bracket-indexed range params (`Date[0]`/`Date[1]`) are grouped into a single chip ("Date: 2020 → 2021") whose `×` removes all bounds. Chip URLs are rebuilt with a `URLSearchParams` round-trip, which preserves repeated and bracketed keys byte-for-byte and works on both short-URL and `index.php?title=` wikis; removing or clearing filters also resets `_offset` so pagination never points at an empty page.
 
@@ -231,10 +231,10 @@ body.special-SpecialDrilldown .cargo-drilldown-layout {
 |---------|--------------|-----|
 | Sidebar doesn't appear; filters still above results | Cargo selectors not matching | Open DevTools → Console; a `SaintapediaDrilldown:` warning will name the missing selector if the elements were not found. |
 | Table tabs become a vertical list | Cargo 3.x nests the tabs inside `.drilldown-results`; extension restructures the DOM at runtime to hoist tabs above the flex container. Ensure you are running v0.4+. | `git pull` in the extension directory and restart containers. |
-| Layout unchanged despite extension loading | Custom drilldown CSS in `MediaWiki:Common.css` conflicting with the extension's styles | Remove or comment out any old rules targeting `.drilldown-filters-wrapper` / `.drilldown-results`. |
+| Layout unchanged despite extension loading | Custom drilldown CSS in `MediaWiki:Common.css` conflicting with the extension's styles | Remove or comment out any old rules targeting `.drilldown-filters` / `.drilldown-results`. |
 | Filter chips not showing | No active URL filters | Click a filter value on the drilldown; chips appear once filters are applied. |
 | Extension module not loading | `wfLoadExtension` missing or wrong order | Confirm `LocalSettings.php` edit; Cargo must load before SaintapediaDrilldown. |
-| Sticky sidebar overlaps wiki header | Skin has a sticky top bar (e.g. Vector 2022) | Add to `MediaWiki:Common.css`: `.drilldown-filters-wrapper.cargo-filters-sticky { top: 3.5em; }` |
+| Sticky sidebar overlaps wiki header | Skin has a sticky top bar (e.g. Vector 2022) | Add to `MediaWiki:Common.css`: `.drilldown-filters.cargo-filters-sticky { top: 3.5em; }` |
 
 ---
 

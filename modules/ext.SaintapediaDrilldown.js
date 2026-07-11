@@ -1,9 +1,10 @@
 /**
  * SaintapediaDrilldown — JavaScript module
  *
- * 1. Wraps .drilldown-filters-wrapper + .drilldown-results in a flex
- *    container. If they do not share a parent the layout and toggle are
- *    skipped gracefully; chips are still rendered above .drilldown-results.
+ * 1. Extracts .drilldown-filters (nested inside .drilldown-results by Cargo)
+ *    and rebuilds a flex container: filters as sidebar, remaining results
+ *    content in a new .drilldown-results-content column. If either element
+ *    is missing, the layout and toggle are skipped gracefully.
  * 2. Renders active-filter chips using pure URL helpers (testable, no globals).
  * 3. Adds a mobile toggle whose state is persisted via mw.storage and only
  *    written on explicit user action.
@@ -189,14 +190,14 @@
 	/* -- Feature: flex layout wrapper ---------------------------------- */
 
 	/**
-	 * Cargo 3.x DOM structure (verified against saintapedia.org / Cargo 3.5.1):
+	 * Cargo 3.x DOM structure (verified against saintapedia.org / Cargo 3.9.1):
 	 *
 	 *   #mw-content-text
 	 *     └── div.drilldown-results
 	 *           └── div.mw-spcontent                          (intermediate wrapper)
 	 *                 ├── div#drilldown-tables-tabs-wrapper   (table selector tabs)
 	 *                 ├── div#drilldown-header
-	 *                 └── div.drilldown-filters-wrapper
+	 *                 └── div.drilldown-filters
 	 *
 	 * We restructure mw-spcontent in place to:
 	 *
@@ -205,7 +206,7 @@
 	 *           └── div.mw-spcontent
 	 *                 ├── div.cargo-drilldown-table-tabs  (hoisted; full-width above flex)
 	 *                 └── div.cargo-drilldown-layout      (flex wrapper)
-	 *                       ├── div.drilldown-filters-wrapper  (left sidebar)
+	 *                       ├── div.drilldown-filters  (left sidebar)
 	 *                       └── div.drilldown-results-content  (right column)
 	 *                             └── div#drilldown-header + results + pagination
 	 *
@@ -376,16 +377,16 @@
 		}
 
 		var contentEl = document.querySelector( '#mw-content-text' );
-		// Cargo 3.x nests .drilldown-filters-wrapper inside .drilldown-results;
+		// Cargo 3.x nests .drilldown-filters inside .drilldown-results;
 		// search the whole content area, not just immediate children.
 		var resultsEl = contentEl ? contentEl.querySelector( '.drilldown-results' ) : null;
-		var filtersEl = contentEl ? contentEl.querySelector( '.drilldown-filters-wrapper' ) : null;
+		var filtersEl = contentEl ? contentEl.querySelector( '.drilldown-filters' ) : null;
 		if ( !resultsEl ) {
 			mw.log.warn( 'SaintapediaDrilldown: .drilldown-results not found; layout skipped.' );
 			return;
 		}
 		if ( !filtersEl ) {
-			mw.log.warn( 'SaintapediaDrilldown: .drilldown-filters-wrapper not found; layout skipped.' );
+			mw.log.warn( 'SaintapediaDrilldown: .drilldown-filters not found; layout skipped.' );
 			return;
 		}
 		if ( resultsEl.dataset.saintapediadrilldownInit ) { return; }
