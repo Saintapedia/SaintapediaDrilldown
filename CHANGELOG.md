@@ -3,6 +3,18 @@
 All notable changes are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.5.1] — 2026-07-11
+
+### Fixed
+
+- **Wrong filters selector on live Cargo 3.9.x** — `init()` queried
+  `.drilldown-filters-wrapper`, a class that never existed on the live DOM
+  (the real class is `.drilldown-filters`); the guard bailed on every load
+  before the sidebar layout ever ran. Renamed the selector across
+  `ext.SaintapediaDrilldown.js`, `ext.SaintapediaDrilldown.css`, and the
+  inline mobile `@media` CSS in `Hooks.php`. Note: the 0.4.0 entry below
+  also refers to this class by its old (incorrect) name.
+
 ## [0.5.0] — 2026-06-24
 
 ### Fixed

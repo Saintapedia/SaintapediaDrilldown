@@ -11,7 +11,7 @@
       Note: DOM order before JS may differ from the post-JS results-first order
       since CSS order: requires a flex parent that does not yet exist. */
 @media ( max-width: 719px ) {
-	.drilldown-filters-wrapper,
+	.drilldown-filters,
 	.drilldown-results {
 		display: block;
 		width: 100%;
@@ -48,7 +48,7 @@
 }
 
 /* 2. Filter sidebar */
-.cargo-drilldown-layout .drilldown-filters-wrapper {
+.cargo-drilldown-layout .drilldown-filters {
 	flex: 0 0 var( --cargo-sidebar-width );
 	max-width: calc( var( --cargo-sidebar-width ) + 40px );
 	background: var( --cargo-filter-bg );
@@ -59,7 +59,7 @@
 }
 
 /* Sticky sidebar — only on desktop (when .cargo-mobile-layout is absent) */
-.cargo-drilldown-layout:not( .cargo-mobile-layout ) .drilldown-filters-wrapper.cargo-filters-sticky {
+.cargo-drilldown-layout:not( .cargo-mobile-layout ) .drilldown-filters.cargo-filters-sticky {
 	position: sticky;
 	top: 0.75em;
 	max-height: calc( 100vh - 1.5em );
@@ -69,11 +69,11 @@
 	scrollbar-color: var( --cargo-filter-border ) transparent;
 }
 
-.cargo-drilldown-layout:not( .cargo-mobile-layout ) .drilldown-filters-wrapper.cargo-filters-sticky::-webkit-scrollbar {
+.cargo-drilldown-layout:not( .cargo-mobile-layout ) .drilldown-filters.cargo-filters-sticky::-webkit-scrollbar {
 	width: 5px;
 }
 
-.cargo-drilldown-layout:not( .cargo-mobile-layout ) .drilldown-filters-wrapper.cargo-filters-sticky::-webkit-scrollbar-thumb {
+.cargo-drilldown-layout:not( .cargo-mobile-layout ) .drilldown-filters.cargo-filters-sticky::-webkit-scrollbar-thumb {
 	background: var( --cargo-filter-border );
 	border-radius: 3px;
 }
