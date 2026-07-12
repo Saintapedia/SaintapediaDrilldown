@@ -1,7 +1,7 @@
 {
 	"name": "mediawiki-extension-saintapediadrilldown",
 	"description": "MediaWiki extension: sidebar layout and filter chips for Cargo Special:Drilldown",
-	"version": "0.5.0",
+	"version": "0.5.1",
 	"private": true,
 	"scripts": {
 		"test": "grunt test && npm run lint:css && node --test",

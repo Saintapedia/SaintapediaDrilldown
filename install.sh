@@ -109,7 +109,7 @@ else
 fi
 
 echo ""
-echo "Done. Verify at Special:Version — look for SaintapediaDrilldown 0.4.0."
+echo "Done. Verify at Special:Version — look for SaintapediaDrilldown 0.5.1."
 echo "Then open Special:Drilldown and check browser console for SaintapediaDrilldown warnings."
 echo ""
 echo "If the site shows HTTP 500, recover with:"
