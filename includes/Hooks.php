@@ -46,14 +46,16 @@ class Hooks implements BeforePageDisplayHook {
 		$mobileBreak   = max( 320, min( 1600, $rawBreakpoint ) );
 		$logger = LoggerFactory::getInstance( 'SaintapediaDrilldown' );
 		if ( $sidebarWidth !== $rawWidth ) {
-			$logger->warning( 'SaintapediaDrilldownSidebarWidth value {value} is out of range [120, 800]; clamped to {clamped}.', [
-				'value' => $rawWidth, 'clamped' => $sidebarWidth,
-			] );
+			$logger->warning(
+				'SaintapediaDrilldownSidebarWidth value {value} is out of range [120, 800]; clamped to {clamped}.',
+				[ 'value' => $rawWidth, 'clamped' => $sidebarWidth ]
+			);
 		}
 		if ( $mobileBreak !== $rawBreakpoint ) {
-			$logger->warning( 'SaintapediaDrilldownMobileBreakpoint value {value} is out of range [320, 1600]; clamped to {clamped}.', [
-				'value' => $rawBreakpoint, 'clamped' => $mobileBreak,
-			] );
+			$logger->warning(
+				'SaintapediaDrilldownMobileBreakpoint value {value} is out of range [320, 1600]; clamped to {clamped}.',
+				[ 'value' => $rawBreakpoint, 'clamped' => $mobileBreak ]
+			);
 		}
 
 		$out->addJsConfigVars( [
