@@ -3,6 +3,17 @@
 All notable changes are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.5.2] — 2026-07-16
+
+### Fixed
+
+- **Layout never applied on slow RL loads** — `init()` only hooked `wikipage.content`,
+  but `ext.SaintapediaDrilldown` is queued after `mediawiki.page.ready` in
+  `RLPAGEMODULES`, so the hook often fired before this module registered. Run
+  `init()` immediately when the DOM is already ready.
+- **Cargo 3.9.x filter wrapper** — prefer `.drilldown-filters-wrapper` (when present)
+  as the sidebar element so the “Use the filters below…” line stays with the panel.
+
 ## [0.5.1] — 2026-07-11
 
 ### Fixed

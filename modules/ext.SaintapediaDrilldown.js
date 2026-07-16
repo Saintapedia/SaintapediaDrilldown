@@ -380,7 +380,12 @@
 		// Cargo 3.x nests .drilldown-filters inside .drilldown-results;
 		// search the whole content area, not just immediate children.
 		var resultsEl = contentEl ? contentEl.querySelector( '.drilldown-results' ) : null;
-		var filtersEl = contentEl ? contentEl.querySelector( '.drilldown-filters' ) : null;
+		// Cargo 3.9.x wraps filters in .drilldown-filters-wrapper; prefer the wrapper
+		// so the intro line moves with the sidebar.
+		var filtersEl = contentEl ? (
+			contentEl.querySelector( '.drilldown-filters-wrapper' ) ||
+			contentEl.querySelector( '.drilldown-filters' )
+		) : null;
 		if ( !resultsEl ) {
 			mw.log.warn( 'SaintapediaDrilldown: .drilldown-results not found; layout skipped.' );
 			return;
@@ -408,9 +413,13 @@
 		initBreakpointWatcher( layoutEl, filtersEl, toggle );
 	}
 
-	mw.hook( 'wikipage.content' ).add( function () {
+	mw.hook( 'wikipage.content' ).add( init );
+
+	// RLPAGEMODULES lists mediawiki.page.ready before ext.SaintapediaDrilldown,
+	// so wikipage.content often fires before this module registers its hook.
+	if ( document.readyState !== 'loading' ) {
 		init();
-	} );
+	}
 
 	// Export pure helpers for unit testing; no-op in MediaWiki environment.
 	if ( typeof module !== 'undefined' && module.exports ) {
