@@ -13,7 +13,9 @@ declare( strict_types = 1 );
 namespace MediaWiki\Extension\SaintapediaDrilldown;
 
 use IContextSource;
+use IDBAccessObject;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Title\Title;
 
 /**
@@ -21,7 +23,7 @@ use MediaWiki\Title\Title;
  */
 class SaintapediaDrilldownConfigService {
 
-	private const CACHE_VERSION = 1;
+	private const CACHE_VERSION = 2;
 	private const CACHE_TTL = 300;
 
 	/** @var array<string,mixed>|null */
@@ -162,7 +164,14 @@ class SaintapediaDrilldownConfigService {
 		}
 
 		$title = Title::makeTitleSafe( NS_MEDIAWIKI, $pageName );
-		if ( $title === null || !$title->exists() ) {
+		if ( $title === null ) {
+			return null;
+		}
+
+		// READ_LATEST avoids stale LinkCache/APCu page_latest after config edits
+		// (other PHP-FPM workers can otherwise serve the previous revid for a while).
+		$revId = (int)$title->getLatestRevID( IDBAccessObject::READ_LATEST );
+		if ( $revId <= 0 ) {
 			return null;
 		}
 
@@ -170,21 +179,31 @@ class SaintapediaDrilldownConfigService {
 		$key = $cache->makeKey(
 			'saintapediadrilldown-wiki-overlay',
 			self::CACHE_VERSION,
-			$title->getLatestRevID()
+			$revId
 		);
 
-		/** @var array<string,mixed>|null $overlay */
+		/** @var array<string,mixed>|false $overlay */
 		$overlay = $cache->getWithSetCallback(
 			$key,
 			self::CACHE_TTL,
-			function () use ( $title ) {
-				$wikiPage = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
-				$content = $wikiPage->getContent();
-				if ( $content === null ) {
-					return null;
+			function () use ( $title, $revId ) {
+				$revLookup = MediaWikiServices::getInstance()->getRevisionLookup();
+				$revision = $revLookup->getRevisionById( $revId, IDBAccessObject::READ_LATEST )
+					?? $revLookup->getRevisionByTitle( $title, 0, IDBAccessObject::READ_LATEST );
+				if ( $revision === null ) {
+					// false = do not cache a negative result under this revid
+					return false;
 				}
 
-				return $this->parseJsonConfig( $content->getText() );
+				$content = $revision->getContent( SlotRecord::MAIN );
+				if ( $content === null ) {
+					return false;
+				}
+
+				$parsed = $this->parseJsonConfig( $content->getText() );
+				// Cache an empty array for invalid JSON so we don't re-parse every request;
+				// caller treats [] as "no overlay".
+				return $parsed ?? [];
 			}
 		);
 
