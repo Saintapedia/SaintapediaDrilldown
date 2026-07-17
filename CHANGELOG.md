@@ -28,6 +28,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   gated under `.cargo-large-headings` so turning the option off reverts typography.
 - **Collapsible sections** — rely on CSS `.cargo-section-collapsed` only (no
   redundant inline `display` on filter values).
+- **Config page content type** — only parse `TextContent` (not bare `Content`)
+  before calling `getText()`.
+- **themeVars `rgba()` hardening** — reject `{` / `}` inside colour function
+  arguments so a brace cannot close the inline theme rule block early.
 
 ## [0.6.0] — 2026-07-16
 

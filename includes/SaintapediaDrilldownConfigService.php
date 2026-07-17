@@ -17,6 +17,7 @@ use IDBAccessObject;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Title\Title;
+use TextContent;
 
 /**
  * Resolves layout and polish settings for Special:Drilldown.
@@ -230,7 +231,8 @@ class SaintapediaDrilldownConfigService {
 				}
 
 				$content = $revision->getContent( SlotRecord::MAIN );
-				if ( $content === null ) {
+				// Content has no getText(); only TextContent (WikitextContent, etc.) does.
+				if ( !( $content instanceof TextContent ) ) {
 					return false;
 				}
 
@@ -322,9 +324,10 @@ class SaintapediaDrilldownConfigService {
 			return false;
 		}
 		// Allow hex colours, rgb/rgba, unit lengths, and keyword-like tokens.
-		// Length units are required (px|em|rem|%) — not optional.
+		// Length units are required (px|em|rem|%). Exclude { } from function
+		// args so a stray brace cannot close the inline style rule block early.
 		return (bool)preg_match(
-			'/^(?:#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|[0-9.]+(?:px|em|rem|%)|[a-zA-Z][a-zA-Z0-9_-]*)$/',
+			'/^(?:#[0-9a-fA-F]{3,8}|rgba?\([^)}{]+\)|[0-9.]+(?:px|em|rem|%)|[a-zA-Z][a-zA-Z0-9_-]*)$/',
 			$value
 		);
 	}
