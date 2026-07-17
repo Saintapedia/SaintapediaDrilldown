@@ -49,6 +49,9 @@ class Hooks implements BeforePageDisplayHook {
 			'saintapediaDrilldownStickyFilters' => $cfg['stickyFilters'],
 			'saintapediaDrilldownStickyChips' => $cfg['stickyChips'],
 			'saintapediaDrilldownPillChips' => $cfg['pillChips'],
+			'saintapediaDrilldownCollapsibleSections' => $cfg['collapsibleSections'],
+			'saintapediaDrilldownSectionsStartCollapsed' => $cfg['sectionsStartCollapsed'],
+			'saintapediaDrilldownLargeHeadings' => $cfg['largeHeadings'],
 			'saintapediaDrilldownMobileBreakpoint' => $mobileBreak,
 			'saintapediaDrilldownTheme' => $cfg['theme'],
 		] );

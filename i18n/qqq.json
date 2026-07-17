@@ -11,5 +11,6 @@
 	"saintapediadrilldown-chip-text": "Display text inside each active-filter chip. $1 is the filter name (e.g. \"Category\"), $2 is the selected value (e.g. \"Martyrs\"). Translators may reorder or repunctuate.",
 	"saintapediadrilldown-remove-filter-aria": "Accessible label on the remove (×) button inside each active-filter chip. $1 is the filter name, $2 is the selected value.",
 	"saintapediadrilldown-search-filter-label": "Label suffix for text-search filter chips. $1 is the field name (e.g. \"Name\"). Displayed as the chip label when a full-text search param is active.",
-	"saintapediadrilldown-range-value": "Display value for a date- or number-range filter chip. $1 is the lower bound, $2 is the upper bound (e.g. \"2020 → 2021\"). Translators may change the separator."
+	"saintapediadrilldown-range-value": "Display value for a date- or number-range filter chip. $1 is the lower bound, $2 is the upper bound (e.g. \"2020 → 2021\"). Translators may change the separator.",
+	"saintapediadrilldown-section-toggle": "Accessible name for the button that expands or collapses a filter field section. $1 is the field name (e.g. \"Dedication\")."
 }

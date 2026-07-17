@@ -1,6 +1,6 @@
 {
 	"name": "SaintapediaDrilldown",
-	"version": "0.6.0",
+	"version": "0.6.1",
 	"author": [ "Tom O'Neill", "Saintapedia contributors" ],
 	"url": "https://www.mediawiki.org/wiki/Extension:SaintapediaDrilldown",
 	"descriptionmsg": "saintapediadrilldown-desc",
@@ -39,7 +39,8 @@
 				"saintapediadrilldown-chip-text",
 				"saintapediadrilldown-remove-filter-aria",
 				"saintapediadrilldown-search-filter-label",
-				"saintapediadrilldown-range-value"
+				"saintapediadrilldown-range-value",
+				"saintapediadrilldown-section-toggle"
 			]
 		}
 	},
@@ -71,6 +72,18 @@
 		"SaintapediaDrilldownPillChips": {
 			"value": true,
 			"description": "Use pill-shaped filter chips. Overridable via wiki config."
+		},
+		"SaintapediaDrilldownCollapsibleSections": {
+			"value": true,
+			"description": "Make each filter field a collapsible section with a clickable heading. Overridable via wiki config."
+		},
+		"SaintapediaDrilldownSectionsStartCollapsed": {
+			"value": false,
+			"description": "When true, filter sections start collapsed (unless they have an active filter or a stored preference). Overridable via wiki config."
+		},
+		"SaintapediaDrilldownLargeHeadings": {
+			"value": true,
+			"description": "Use larger page and filter section headings. Overridable via wiki config."
 		},
 		"SaintapediaDrilldownMobileBreakpoint": {
 			"value": 720,

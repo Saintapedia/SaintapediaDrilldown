@@ -84,6 +84,9 @@ class SaintapediaDrilldownConfigService {
 	 *   stickyFilters:bool,
 	 *   stickyChips:bool,
 	 *   pillChips:bool,
+	 *   collapsibleSections:bool,
+	 *   sectionsStartCollapsed:bool,
+	 *   largeHeadings:bool,
 	 *   mobileBreakpoint:int,
 	 *   theme:string,
 	 *   themeVars:array<string,string>
@@ -103,6 +106,9 @@ class SaintapediaDrilldownConfigService {
 		$stickyFilters = (bool)$main->get( 'SaintapediaDrilldownStickyFilters' );
 		$stickyChips = (bool)$main->get( 'SaintapediaDrilldownStickyChips' );
 		$pillChips = (bool)$main->get( 'SaintapediaDrilldownPillChips' );
+		$collapsibleSections = (bool)$main->get( 'SaintapediaDrilldownCollapsibleSections' );
+		$sectionsStartCollapsed = (bool)$main->get( 'SaintapediaDrilldownSectionsStartCollapsed' );
+		$largeHeadings = (bool)$main->get( 'SaintapediaDrilldownLargeHeadings' );
 		$mobileBreak = (int)$main->get( 'SaintapediaDrilldownMobileBreakpoint' );
 		$theme = (string)$main->get( 'SaintapediaDrilldownTheme' );
 
@@ -125,6 +131,15 @@ class SaintapediaDrilldownConfigService {
 			if ( array_key_exists( 'pillChips', $wiki ) ) {
 				$pillChips = (bool)$wiki['pillChips'];
 			}
+			if ( array_key_exists( 'collapsibleSections', $wiki ) ) {
+				$collapsibleSections = (bool)$wiki['collapsibleSections'];
+			}
+			if ( array_key_exists( 'sectionsStartCollapsed', $wiki ) ) {
+				$sectionsStartCollapsed = (bool)$wiki['sectionsStartCollapsed'];
+			}
+			if ( array_key_exists( 'largeHeadings', $wiki ) ) {
+				$largeHeadings = (bool)$wiki['largeHeadings'];
+			}
 			if ( isset( $wiki['mobileBreakpoint'] ) ) {
 				$mobileBreak = (int)$wiki['mobileBreakpoint'];
 			}
@@ -145,6 +160,9 @@ class SaintapediaDrilldownConfigService {
 			'stickyFilters' => $stickyFilters,
 			'stickyChips' => $stickyChips,
 			'pillChips' => $pillChips,
+			'collapsibleSections' => $collapsibleSections,
+			'sectionsStartCollapsed' => $sectionsStartCollapsed,
+			'largeHeadings' => $largeHeadings,
 			'mobileBreakpoint' => $mobileBreak,
 			'theme' => $theme,
 			'themeVars' => $themeVars,

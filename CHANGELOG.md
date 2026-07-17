@@ -3,6 +3,24 @@
 All notable changes are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.6.1] — 2026-07-17
+
+### Added
+
+- **Collapsible filter sections** — every filter field is a clickable heading that
+  expands/collapses its values (replaces Cargo’s sparse per-field arrows). State
+  is remembered per field via `mw.storage`. Active filters stay open by default.
+- **Large headings** — prominent table title (`#drilldown-header`) and larger
+  filter section titles (especially with the `soft` theme).
+- Wiki / `$wg` options: `collapsibleSections`, `sectionsStartCollapsed`,
+  `largeHeadings` (all on by default except start-collapsed).
+
+### Fixed
+
+- **Stale wiki config after edits** — load config page revid with `READ_LATEST`
+  so PHP-FPM workers pick up `MediaWiki:SaintapediaDrilldown-config` changes
+  immediately (was in 0.6.0 follow-up commit).
+
 ## [0.6.0] — 2026-07-16
 
 ### Added

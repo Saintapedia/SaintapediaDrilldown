@@ -21,11 +21,16 @@
 		stickyChips:   mw.config.get( 'saintapediaDrilldownStickyChips',      true ),
 		pillChips:     mw.config.get( 'saintapediaDrilldownPillChips',        true ),
 		mobileBreak:   mw.config.get( 'saintapediaDrilldownMobileBreakpoint', 720 ),
-		theme:         mw.config.get( 'saintapediaDrilldownTheme',            'default' )
+		theme:         mw.config.get( 'saintapediaDrilldownTheme',            'default' ),
+		collapsibleSections: mw.config.get( 'saintapediaDrilldownCollapsibleSections', true ),
+		sectionsStartCollapsed: mw.config.get( 'saintapediaDrilldownSectionsStartCollapsed', false ),
+		largeHeadings: mw.config.get( 'saintapediaDrilldownLargeHeadings', true )
 	};
 
 	// Namespace the key per wiki so wikifarm installs don't share state.
-	var STORAGE_KEY = 'saintapediadrilldown-filters-open-' + ( mw.config.get( 'wgWikiID' ) || '' );
+	var wikiId = mw.config.get( 'wgWikiID' ) || '';
+	var STORAGE_KEY = 'saintapediadrilldown-filters-open-' + wikiId;
+	var SECTION_KEY_PREFIX = 'saintapediadrilldown-section-' + wikiId + '-';
 	var storage     = mw.storage;
 
 	/* -- Pure URL / filter helpers (no globals; exported for unit tests) -- */
@@ -344,6 +349,145 @@
 		return { setOpen: setOpen };
 	}
 
+	/* -- Feature: collapsible filter sections -------------------------- */
+
+	/**
+	 * Field key for storage: strip Cargo toggle chrome and trailing colon.
+	 *
+	 * @param {HTMLElement} labelEl
+	 * @return {string}
+	 */
+	function sectionFieldKey( labelEl ) {
+		var clone = labelEl.cloneNode( true );
+		var toggles = clone.querySelectorAll( '.drilldown-values-toggle, .cargo-section-chevron' );
+		var i;
+		for ( i = 0; i < toggles.length; i++ ) {
+			if ( toggles[ i ].parentNode ) {
+				toggles[ i ].parentNode.removeChild( toggles[ i ] );
+			}
+		}
+		return ( clone.textContent || '' ).replace( /\s+/g, ' ' ).replace( /:\s*$/, '' ).trim();
+	}
+
+	/**
+	 * True when this filter field has an active URL value (keep open by default).
+	 *
+	 * @param {string} fieldKey
+	 * @return {boolean}
+	 */
+	function sectionHasActiveFilter( fieldKey ) {
+		if ( !fieldKey ) { return false; }
+		var filters = getActiveFilters( window.location.search );
+		var i;
+		var key;
+		var base = fieldKey.replace( / /g, '_' );
+		for ( i = 0; i < filters.length; i++ ) {
+			key = filters[ i ].key;
+			if ( key === fieldKey || key === base ) { return true; }
+			if ( key.indexOf( base + '[' ) === 0 ) { return true; }
+			if ( key.indexOf( '_search_' ) === 0 &&
+				key.slice( 8 ).replace( /_/g, ' ' ) === fieldKey ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Makes every Cargo filter block a collapsible section with a large heading.
+	 * Replaces Cargo's sparse per-field arrow toggles with a full-width control.
+	 *
+	 * @param {HTMLElement} filtersRoot  sidebar root (.drilldown-filters-wrapper or .drilldown-filters)
+	 */
+	function initCollapsibleSections( filtersRoot ) {
+		var sections = filtersRoot.querySelectorAll( '.drilldown-filter' );
+		var i;
+
+		for ( i = 0; i < sections.length; i++ ) {
+			( function ( section ) {
+				var labelEl = section.querySelector( '.drilldown-filter-label' );
+				var valuesEl = section.querySelector( '.drilldown-filter-values' );
+				var fieldKey;
+				var storageKey;
+				var stored;
+				var open;
+				var btn;
+				var chevron;
+				var titleSpan;
+				var cargoToggle;
+
+				if ( !labelEl || !valuesEl ) { return; }
+				if ( section.dataset.cargoSectionInit ) { return; }
+				section.dataset.cargoSectionInit = '1';
+
+				fieldKey = sectionFieldKey( labelEl );
+				if ( !fieldKey ) { return; }
+
+				// Hide Cargo's tiny arrow; we own expand/collapse.
+				cargoToggle = labelEl.querySelector( '.drilldown-values-toggle' );
+				if ( cargoToggle ) {
+					cargoToggle.style.display = 'none';
+				}
+
+				// Build accessible toggle button from the existing label content.
+				btn = el( 'button', 'cargo-section-toggle' );
+				btn.type = 'button';
+				chevron = el( 'span', 'cargo-section-chevron', '▾' );
+				chevron.setAttribute( 'aria-hidden', 'true' );
+				titleSpan = el( 'span', 'cargo-section-title', fieldKey );
+				btn.appendChild( chevron );
+				btn.appendChild( titleSpan );
+				btn.setAttribute(
+					'aria-label',
+					mw.msg( 'saintapediadrilldown-section-toggle', fieldKey )
+				);
+
+				// Replace label contents with our button (keeps .drilldown-filter-label for CSS).
+				while ( labelEl.firstChild ) {
+					labelEl.removeChild( labelEl.firstChild );
+				}
+				labelEl.appendChild( btn );
+
+				if ( !valuesEl.id ) {
+					valuesEl.id = 'cargo-filter-values-' +
+						fieldKey.replace( /[^a-zA-Z0-9_-]+/g, '-' ).toLowerCase() +
+						'-' + i;
+				}
+				btn.setAttribute( 'aria-controls', valuesEl.id );
+
+				storageKey = SECTION_KEY_PREFIX + fieldKey;
+				stored = storage.get( storageKey );
+				if ( stored === '1' ) {
+					open = true;
+				} else if ( stored === '0' ) {
+					open = false;
+				} else if ( sectionHasActiveFilter( fieldKey ) ) {
+					open = true;
+				} else {
+					open = !cfg.sectionsStartCollapsed;
+				}
+
+				function setOpen( isOpen, persist ) {
+					open = isOpen;
+					section.classList.toggle( 'cargo-section-collapsed', !open );
+					btn.setAttribute( 'aria-expanded', open ? 'true' : 'false' );
+					// Keep Cargo's display:none path in sync for any of its own CSS.
+					valuesEl.style.display = open ? '' : 'none';
+					if ( persist !== false ) {
+						storage.set( storageKey, open ? '1' : '0' );
+					}
+				}
+
+				btn.addEventListener( 'click', function ( e ) {
+					e.preventDefault();
+					setOpen( !open );
+				} );
+
+				setOpen( open, false );
+			}( sections[ i ] ) );
+		}
+	}
+
 	/* -- Feature: config-driven mobile breakpoint ---------------------- */
 
 	/**
@@ -416,11 +560,24 @@
 
 		layoutEl.style.setProperty( '--cargo-sidebar-width', cfg.sidebarWidth + 'px' );
 		if ( cfg.stickyFilters ) { filtersEl.classList.add( 'cargo-filters-sticky' ); }
+		if ( cfg.largeHeadings ) {
+			layoutEl.classList.add( 'cargo-large-headings' );
+			// The following CSS classes are used here:
+			// * cargo-drilldown-title
+			var pageTitle = ( resultsContentEl || layoutEl ).querySelector( '#drilldown-header' );
+			if ( pageTitle ) {
+				pageTitle.classList.add( 'cargo-drilldown-title' );
+			}
+		}
 		if ( cfg.theme && cfg.theme !== 'default' ) {
 			// The following CSS classes are used here:
 			// * cargo-theme-soft
 			// * cargo-theme-compact
 			layoutEl.classList.add( 'cargo-theme-' + cfg.theme );
+		}
+
+		if ( cfg.collapsibleSections ) {
+			initCollapsibleSections( filtersEl );
 		}
 
 		var toggle = addMobileToggle( filtersEl );
