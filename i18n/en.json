@@ -11,5 +11,6 @@
 	"saintapediadrilldown-chip-text": "$1: $2",
 	"saintapediadrilldown-remove-filter-aria": "Remove filter $1: $2",
 	"saintapediadrilldown-search-filter-label": "$1 (search)",
-	"saintapediadrilldown-range-value": "$1 → $2"
+	"saintapediadrilldown-range-value": "$1 → $2",
+	"saintapediadrilldown-section-toggle": "Expand or collapse filter section $1"
 }

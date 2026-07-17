@@ -3,6 +3,54 @@
 All notable changes are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.6.1] — 2026-07-17
+
+### Added
+
+- **Collapsible filter sections** — every filter field is a clickable heading that
+  expands/collapses its values (replaces Cargo’s sparse per-field arrows). State
+  is remembered per field via `mw.storage`. Active filters stay open by default.
+- **Large headings** — prominent table title (`#drilldown-header`) and larger
+  filter section titles (especially with the `soft` theme).
+- Wiki / `$wg` options: `collapsibleSections`, `sectionsStartCollapsed`,
+  `largeHeadings` (all on by default except start-collapsed).
+
+### Fixed
+
+- **Stale wiki config after edits** — load config page revid with `READ_LATEST`
+  so PHP-FPM workers pick up `MediaWiki:SaintapediaDrilldown-config` changes
+  immediately (was in 0.6.0 follow-up commit).
+- **Clamp logging restored** — out-of-range `sidebarWidth` / `mobileBreakpoint`
+  emit `wfLogWarning` again (lost when clamping moved into the config service).
+- **themeVars bare numbers rejected** — CSS length values must include a unit
+  (`px` / `em` / `rem` / `%`); unitless numbers like `3.14` are no longer accepted.
+- **`largeHeadings: false` honoured** — large title and section label sizes are
+  gated under `.cargo-large-headings` so turning the option off reverts typography.
+- **Collapsible sections** — rely on CSS `.cargo-section-collapsed` only (no
+  redundant inline `display` on filter values).
+- **Config page content type** — only parse `TextContent` (not bare `Content`)
+  before calling `getText()`.
+- **themeVars `rgba()` hardening** — reject `{` / `}` inside colour function
+  arguments so a brace cannot close the inline theme rule block early.
+
+## [0.6.0] — 2026-07-16
+
+### Added
+
+- **Wiki config page** — `MediaWiki:SaintapediaDrilldown-config` (JSON) can override
+  layout and polish options without editing `LocalSettings.php`. Cached by page
+  revid; falls back to `$wg*` when the page is missing or invalid.
+- **Theme presets** — `default`, `soft`, and `compact` (via `$wgSaintapediaDrilldownTheme`
+  or wiki `"theme"`). Optional `"themeVars"` for colours, radius, gap, and sticky offset.
+- **Sticky chips** — active-filter bar can stick under the header while scrolling
+  results (`stickyChips`, default on).
+- **Pill chips** — rounded filter chips by default (`pillChips`).
+
+### Changed
+
+- **Visual polish** — softer sidebar shadow, Vector-friendlier colours, clearer
+  filter section hierarchy, refined clear-all link, and table-tabs underline.
+
 ## [0.5.2] — 2026-07-16
 
 ### Fixed

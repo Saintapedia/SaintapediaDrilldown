@@ -3,6 +3,8 @@
    Layout/toggle rules are scoped to .cargo-drilldown-layout (added by JS).
    Chip rules are scoped to .drilldown-results-content (the JS-created results
    column inside the flex wrapper).
+   Theme tokens are overridable via MediaWiki:SaintapediaDrilldown-config
+   (theme / themeVars) or MediaWiki:Common.css.
    ========================================================================== */
 
 /* 0. Pre-JS mobile fallback — stacks Cargo's default markup on narrow viewports
@@ -25,21 +27,25 @@
       so we can target it without an ID selector. */
 .cargo-drilldown-table-tabs {
 	width: 100%;
-	margin-bottom: 0.5em;
+	margin-bottom: 0.75em;
+	padding-bottom: 0.35em;
+	border-bottom: 1px solid #c8ccd1;
 }
 
 /* 1. Flex container (custom properties and layout in one block) */
 .cargo-drilldown-layout {
 	--cargo-sidebar-width: 280px;
 	--cargo-gap: 1.5em;
+	--cargo-radius: 6px;
 	--cargo-filter-bg: #f8f9fa;
-	--cargo-filter-border: #a2a9b1;
+	--cargo-filter-border: #c8ccd1;
 	--cargo-chip-bg: #fff;
 	--cargo-chip-border: #72a0c1;
 	--cargo-chip-text: #0645ad;
-	--cargo-toggle-bg: #3680b0;
+	--cargo-toggle-bg: #36c;
 	--cargo-toggle-text: #fff;
 	--cargo-active-bar-bg: #eaf3fb;
+	--cargo-sticky-top: 0.75em;
 	display: flex;
 	flex-direction: row;
 	align-items: flex-start;
@@ -48,20 +54,23 @@
 }
 
 /* 2. Filter sidebar */
-.cargo-drilldown-layout .drilldown-filters {
+.cargo-drilldown-layout .drilldown-filters,
+.cargo-drilldown-layout .drilldown-filters-wrapper {
 	flex: 0 0 var( --cargo-sidebar-width );
 	max-width: calc( var( --cargo-sidebar-width ) + 40px );
 	background: var( --cargo-filter-bg );
 	border: 1px solid var( --cargo-filter-border );
-	border-radius: 3px;
-	padding: 0.65em 0.8em;
+	border-radius: var( --cargo-radius );
+	padding: 0.75em 0.9em;
 	box-sizing: border-box;
+	box-shadow: 0 1px 2px rgba( 0, 0, 0, 0.04 );
 }
 
 /* Sticky sidebar — only on desktop (when .cargo-mobile-layout is absent) */
-.cargo-drilldown-layout:not( .cargo-mobile-layout ) .drilldown-filters.cargo-filters-sticky {
+.cargo-drilldown-layout:not( .cargo-mobile-layout ) .drilldown-filters.cargo-filters-sticky,
+.cargo-drilldown-layout:not( .cargo-mobile-layout ) .drilldown-filters-wrapper.cargo-filters-sticky {
 	position: sticky;
-	top: 0.75em;
+	top: var( --cargo-sticky-top );
 	max-height: calc( 100vh - 1.5em );
 	max-height: calc( 100dvh - 1.5em );
 	overflow-y: auto;
@@ -69,11 +78,13 @@
 	scrollbar-color: var( --cargo-filter-border ) transparent;
 }
 
-.cargo-drilldown-layout:not( .cargo-mobile-layout ) .drilldown-filters.cargo-filters-sticky::-webkit-scrollbar {
+.cargo-drilldown-layout:not( .cargo-mobile-layout ) .drilldown-filters.cargo-filters-sticky::-webkit-scrollbar,
+.cargo-drilldown-layout:not( .cargo-mobile-layout ) .drilldown-filters-wrapper.cargo-filters-sticky::-webkit-scrollbar {
 	width: 5px;
 }
 
-.cargo-drilldown-layout:not( .cargo-mobile-layout ) .drilldown-filters.cargo-filters-sticky::-webkit-scrollbar-thumb {
+.cargo-drilldown-layout:not( .cargo-mobile-layout ) .drilldown-filters.cargo-filters-sticky::-webkit-scrollbar-thumb,
+.cargo-drilldown-layout:not( .cargo-mobile-layout ) .drilldown-filters-wrapper.cargo-filters-sticky::-webkit-scrollbar-thumb {
 	background: var( --cargo-filter-border );
 	border-radius: 3px;
 }
@@ -84,18 +95,173 @@
 	min-width: 0;
 }
 
-/* 4. Active-filter chips bar */
+/* 3b. Large page / table title — only when largeHeadings config is on.
+   JS adds .cargo-large-headings on the layout and .cargo-drilldown-title on
+   Cargo's #drilldown-header (inside .drilldown-results-content). */
+.cargo-drilldown-layout.cargo-large-headings .cargo-drilldown-title {
+	font-size: 1.85rem;
+	font-weight: bold;
+	line-height: 1.25;
+	letter-spacing: -0.01em;
+	margin: 0 0 0.65em;
+	padding-bottom: 0.35em;
+	border-bottom: 2px solid var( --cargo-filter-border );
+	color: #101418;
+}
+
+.cargo-drilldown-layout.cargo-large-headings .cargo-drilldown-title .drilldown-header-value {
+	font-size: 0.55em;
+	font-weight: 500;
+	color: #54595d;
+	vertical-align: middle;
+}
+
+/* 4. Filter section polish (before chips so stylelint specificity order stays valid) */
+.cargo-drilldown-layout .drilldown-filter {
+	margin-bottom: 0.85em;
+	padding-bottom: 0.35em;
+	border-bottom: 1px solid rgba( 0, 0, 0, 0.06 );
+}
+
+.cargo-drilldown-layout .drilldown-filter:last-child {
+	margin-bottom: 0;
+	border-bottom: 0;
+	padding-bottom: 0;
+}
+
+.cargo-drilldown-layout .drilldown-filter .drilldown-filter-label {
+	font-weight: bold;
+	font-size: 0.95rem;
+	letter-spacing: 0.01em;
+	padding-bottom: 0.3em;
+	border-bottom: 1px solid var( --cargo-filter-border );
+	margin-bottom: 0.45em;
+	color: #101418;
+}
+
+/* largeHeadings: bump filter field labels */
+.cargo-drilldown-layout.cargo-large-headings .drilldown-filter .drilldown-filter-label {
+	font-size: 1.05rem;
+}
+
+.cargo-drilldown-layout .drilldown-filter-values {
+	overflow-wrap: break-word;
+	line-height: 1.5;
+	font-size: 0.95em;
+	padding: 0.15em 0 0.25em 0.15em;
+}
+
+/* Collapsible section toggle (replaces Cargo's sparse per-field arrows) */
+.cargo-drilldown-layout .cargo-section-toggle {
+	display: flex;
+	align-items: center;
+	gap: 0.4em;
+	width: 100%;
+	margin: 0;
+	padding: 0.2em 0.15em;
+	border: 0;
+	border-radius: calc( var( --cargo-radius ) - 2px );
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	font-weight: bold;
+	font-size: 0.95rem;
+	line-height: 1.3;
+	text-align: left;
+	cursor: pointer;
+}
+
+.cargo-drilldown-layout.cargo-large-headings .cargo-section-toggle {
+	font-size: 1.05rem;
+}
+
+.cargo-drilldown-layout .cargo-section-toggle:hover {
+	background: rgba( 0, 0, 0, 0.04 );
+}
+
+.cargo-drilldown-layout .cargo-section-toggle:focus-visible {
+	outline: 2px solid #36c;
+	outline-offset: 2px;
+}
+
+.cargo-drilldown-layout .cargo-section-chevron {
+	display: inline-flex;
+	flex: 0 0 auto;
+	align-items: center;
+	justify-content: center;
+	width: 1.1em;
+	color: #54595d;
+	font-size: 0.85em;
+	line-height: 1;
+	transition: transform 0.15s ease;
+}
+
+.cargo-drilldown-layout .drilldown-filter.cargo-section-collapsed .cargo-section-chevron {
+	transform: rotate( -90deg );
+}
+
+.cargo-drilldown-layout .cargo-section-title {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.cargo-drilldown-layout .drilldown-filter.cargo-section-collapsed .drilldown-filter-values {
+	display: none;
+}
+
+/* Compact theme: tighter filter rows (before soft+large so specificity order is valid) */
+.cargo-drilldown-layout.cargo-theme-compact .drilldown-filter {
+	margin-bottom: 0.45em;
+	padding-bottom: 0.2em;
+}
+
+.cargo-drilldown-layout.cargo-theme-compact .drilldown-filter .drilldown-filter-label,
+.cargo-drilldown-layout.cargo-theme-compact .cargo-section-toggle {
+	font-size: 0.9rem;
+	margin-bottom: 0.2em;
+	padding-bottom: 0.15em;
+}
+
+/* Soft theme + largeHeadings: slightly larger section titles */
+.cargo-drilldown-layout.cargo-theme-soft.cargo-large-headings .drilldown-filter .drilldown-filter-label,
+.cargo-drilldown-layout.cargo-theme-soft.cargo-large-headings .cargo-section-toggle {
+	font-size: 1.12rem;
+}
+
+.cargo-drilldown-layout.cargo-theme-soft.cargo-large-headings .cargo-drilldown-title {
+	font-size: 2rem;
+}
+
+/* Compact theme + largeHeadings */
+.cargo-drilldown-layout.cargo-theme-compact.cargo-large-headings .drilldown-filter .drilldown-filter-label,
+.cargo-drilldown-layout.cargo-theme-compact.cargo-large-headings .cargo-section-toggle {
+	font-size: 0.95rem;
+}
+
+.cargo-drilldown-layout.cargo-theme-compact.cargo-large-headings .cargo-drilldown-title {
+	font-size: 1.5rem;
+}
+
+/* 5. Active-filter chips bar */
 .drilldown-results-content .cargo-active-filters {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 0.35em;
-	margin-bottom: 0.75em;
-	padding: 0.45em 0.65em;
+	gap: 0.4em;
+	margin-bottom: 0.85em;
+	padding: 0.55em 0.75em;
 	background: var( --cargo-active-bar-bg );
 	border: 1px solid var( --cargo-filter-border );
-	border-radius: 3px;
+	border-radius: var( --cargo-radius );
 	font-size: 0.875em;
+	box-shadow: 0 1px 2px rgba( 0, 0, 0, 0.03 );
+}
+
+/* Sticky chips — desktop only; mobile @media forces position:static */
+.drilldown-results-content .cargo-active-filters.cargo-chips-sticky {
+	position: sticky;
+	top: var( --cargo-sticky-top );
+	z-index: 2;
 }
 
 .drilldown-results-content .cargo-active-filters:empty {
@@ -105,14 +271,21 @@
 .drilldown-results-content .cargo-filter-chip {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.25em;
-	padding: 0.15em 0.45em;
+	gap: 0.3em;
+	padding: 0.2em 0.55em;
 	background: var( --cargo-chip-bg );
 	border: 1px solid var( --cargo-chip-border );
-	border-radius: 3px;
+	border-radius: var( --cargo-radius );
 	color: var( --cargo-chip-text );
 	white-space: nowrap;
 	line-height: 1.4;
+	box-shadow: 0 1px 0 rgba( 0, 0, 0, 0.04 );
+}
+
+/* Pill chips (default polish) */
+.drilldown-results-content .cargo-filter-chip.cargo-chip-pill {
+	border-radius: 999px;
+	padding: 0.22em 0.65em 0.22em 0.75em;
 }
 
 .drilldown-results-content .cargo-chip-label {
@@ -120,25 +293,30 @@
 }
 
 .drilldown-results-content a.cargo-chip-remove {
-	display: inline-block;
-	color: #555;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 1.1em;
+	min-height: 1.1em;
+	color: #54595d;
 	font-weight: bold;
 	text-decoration: none;
 	line-height: 1;
 	padding: 0 2px;
 	cursor: pointer;
+	border-radius: 50%;
 }
 
 .drilldown-results-content a.cargo-chip-remove:hover,
 .drilldown-results-content a.cargo-chip-remove:focus {
-	color: #c00;
+	color: #b32424;
+	background: rgba( 179, 36, 36, 0.08 );
 	text-decoration: none;
 }
 
 .drilldown-results-content a.cargo-chip-remove:focus-visible {
-	outline: 2px solid #3680b0;
+	outline: 2px solid #36c;
 	outline-offset: 2px;
-	border-radius: 2px;
 }
 
 /* margin-inline-start for RTL support (CSSJanus-safe) */
@@ -148,47 +326,40 @@
 }
 
 .drilldown-results-content .cargo-clear-all a {
-	color: #555;
+	color: #54595d;
 	font-size: 0.9em;
+	text-decoration: none;
+	border-bottom: 1px dotted #a2a9b1;
 }
 
 .drilldown-results-content .cargo-clear-all a:hover {
-	color: #c00;
+	color: #b32424;
+	border-bottom-color: #b32424;
 }
 
-/* 5. Mobile toggle button — hidden by default; shown via PHP inline @media */
+/* 6. Mobile toggle button — hidden by default; shown via PHP inline @media */
 .cargo-drilldown-layout .cargo-filters-toggle {
 	display: none;
 	width: 100%;
-	padding: 0.5em 0.9em;
+	padding: 0.6em 1em;
 	background: var( --cargo-toggle-bg );
 	color: var( --cargo-toggle-text );
 	border: 0;
-	border-radius: 3px;
+	border-radius: var( --cargo-radius );
 	cursor: pointer;
 	font-size: 1em;
+	font-weight: 600;
 	text-align: left;
+	box-shadow: 0 1px 2px rgba( 0, 0, 0, 0.08 );
 }
 
 .cargo-drilldown-layout .cargo-filters-toggle:hover {
-	filter: brightness( 1.1 );
+	filter: brightness( 1.08 );
 }
 
 .cargo-drilldown-layout .cargo-filters-toggle:focus-visible {
 	outline: 2px solid #fff;
 	outline-offset: -3px;
-}
-
-/* 6. Filter section polish */
-.cargo-drilldown-layout .drilldown-filter .drilldown-filter-label {
-	font-weight: bold;
-	padding-bottom: 0.2em;
-	border-bottom: 1px solid #ddd;
-	margin-bottom: 0.3em;
-}
-
-.cargo-drilldown-layout .drilldown-filter-values {
-	overflow-wrap: break-word;
 }
 
 /* 7. .cargo-mobile-layout is still functionally required: the :not() selector

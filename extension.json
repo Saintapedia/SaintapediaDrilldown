@@ -1,8 +1,8 @@
 {
 	"name": "SaintapediaDrilldown",
-	"version": "0.5.2",
-	"author": [ "Saintapedia contributors" ],
-	"url": "https://github.com/Saintapedia/SaintapediaDrilldown",
+	"version": "0.6.1",
+	"author": [ "Tom O'Neill", "Saintapedia contributors" ],
+	"url": "https://www.mediawiki.org/wiki/Extension:SaintapediaDrilldown",
 	"descriptionmsg": "saintapediadrilldown-desc",
 	"license-name": "MIT",
 	"type": "other",
@@ -39,7 +39,8 @@
 				"saintapediadrilldown-chip-text",
 				"saintapediadrilldown-remove-filter-aria",
 				"saintapediadrilldown-search-filter-label",
-				"saintapediadrilldown-range-value"
+				"saintapediadrilldown-range-value",
+				"saintapediadrilldown-section-toggle"
 			]
 		}
 	},
@@ -50,23 +51,51 @@
 	"config": {
 		"SaintapediaDrilldownSidebarEnabled": {
 			"value": true,
-			"description": "Enable the sidebar (flex) layout for Special:Drilldown. Set false to disable entirely and fall back to Cargo defaults."
+			"description": "Enable the sidebar (flex) layout for Special:Drilldown. Set false to disable entirely and fall back to Cargo defaults. Overridable via MediaWiki:SaintapediaDrilldown-config."
 		},
 		"SaintapediaDrilldownSidebarWidth": {
 			"value": 280,
-			"description": "Width of the filter sidebar in pixels (desktop). Valid range: 120–800."
+			"description": "Width of the filter sidebar in pixels (desktop). Valid range: 120–800. Overridable via wiki config."
 		},
 		"SaintapediaDrilldownShowFilterChips": {
 			"value": true,
-			"description": "Show active-filter chips above the results area."
+			"description": "Show active-filter chips above the results area. Overridable via wiki config."
 		},
 		"SaintapediaDrilldownStickyFilters": {
 			"value": true,
-			"description": "Make the filter sidebar sticky while the user scrolls results."
+			"description": "Make the filter sidebar sticky while the user scrolls results. Overridable via wiki config."
+		},
+		"SaintapediaDrilldownStickyChips": {
+			"value": true,
+			"description": "Make the active-filter chips bar sticky on desktop. Overridable via wiki config."
+		},
+		"SaintapediaDrilldownPillChips": {
+			"value": true,
+			"description": "Use pill-shaped filter chips. Overridable via wiki config."
+		},
+		"SaintapediaDrilldownCollapsibleSections": {
+			"value": true,
+			"description": "Make each filter field a collapsible section with a clickable heading. Overridable via wiki config."
+		},
+		"SaintapediaDrilldownSectionsStartCollapsed": {
+			"value": false,
+			"description": "When true, filter sections start collapsed (unless they have an active filter or a stored preference). Overridable via wiki config."
+		},
+		"SaintapediaDrilldownLargeHeadings": {
+			"value": true,
+			"description": "Use larger page and filter section headings. Overridable via wiki config."
 		},
 		"SaintapediaDrilldownMobileBreakpoint": {
 			"value": 720,
-			"description": "Viewport width (px) below which the layout switches to stacked / mobile mode. Valid range: 320–1600."
+			"description": "Viewport width (px) below which the layout switches to stacked / mobile mode. Valid range: 320–1600. Overridable via wiki config."
+		},
+		"SaintapediaDrilldownTheme": {
+			"value": "default",
+			"description": "Built-in theme preset: default, soft, or compact. Overridable via wiki config."
+		},
+		"SaintapediaDrilldownConfigPage": {
+			"value": "SaintapediaDrilldown-config",
+			"description": "MediaWiki namespace page (without NS prefix) holding JSON UX overrides. Empty string disables wiki config."
 		}
 	},
 	"manifest_version": 2
