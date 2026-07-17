@@ -20,6 +20,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Stale wiki config after edits** — load config page revid with `READ_LATEST`
   so PHP-FPM workers pick up `MediaWiki:SaintapediaDrilldown-config` changes
   immediately (was in 0.6.0 follow-up commit).
+- **Clamp logging restored** — out-of-range `sidebarWidth` / `mobileBreakpoint`
+  emit `wfLogWarning` again (lost when clamping moved into the config service).
+- **themeVars bare numbers rejected** — CSS length values must include a unit
+  (`px` / `em` / `rem` / `%`); unitless numbers like `3.14` are no longer accepted.
+- **`largeHeadings: false` honoured** — large title and section label sizes are
+  gated under `.cargo-large-headings` so turning the option off reverts typography.
+- **Collapsible sections** — rely on CSS `.cargo-section-collapsed` only (no
+  redundant inline `display` on filter values).
 
 ## [0.6.0] — 2026-07-16
 

@@ -372,6 +372,12 @@
 	/**
 	 * True when this filter field has an active URL value (keep open by default).
 	 *
+	 * Depends on Cargo's Special:Drilldown query-string scheme:
+	 * - scalar filters: FieldName=value
+	 * - ranges / multi: FieldName[0], FieldName[1], …
+	 * - free-text search: _search_FieldName=value (FILTER_PREFIXES)
+	 * If Cargo renames these params, section expand-on-active will miss matches.
+	 *
 	 * @param {string} fieldKey
 	 * @return {boolean}
 	 */
@@ -385,6 +391,7 @@
 			key = filters[ i ].key;
 			if ( key === fieldKey || key === base ) { return true; }
 			if ( key.indexOf( base + '[' ) === 0 ) { return true; }
+			// Cargo free-text search params: _search_<FieldName>
 			if ( key.indexOf( '_search_' ) === 0 &&
 				key.slice( 8 ).replace( /_/g, ' ' ) === fieldKey ) {
 				return true;
@@ -394,10 +401,11 @@
 	}
 
 	/**
-	 * Makes every Cargo filter block a collapsible section with a large heading.
+	 * Makes every Cargo filter block a collapsible section with a heading toggle.
 	 * Replaces Cargo's sparse per-field arrow toggles with a full-width control.
 	 *
-	 * @param {HTMLElement} filtersRoot  sidebar root (.drilldown-filters-wrapper or .drilldown-filters)
+	 * @param {HTMLElement} filtersRoot
+	 *   Sidebar root (.drilldown-filters-wrapper or .drilldown-filters)
 	 */
 	function initCollapsibleSections( filtersRoot ) {
 		var sections = filtersRoot.querySelectorAll( '.drilldown-filter' );
@@ -469,10 +477,9 @@
 
 				function setOpen( isOpen, persist ) {
 					open = isOpen;
+					// Visibility is CSS-only: .cargo-section-collapsed .drilldown-filter-values
 					section.classList.toggle( 'cargo-section-collapsed', !open );
 					btn.setAttribute( 'aria-expanded', open ? 'true' : 'false' );
-					// Keep Cargo's display:none path in sync for any of its own CSS.
-					valuesEl.style.display = open ? '' : 'none';
 					if ( persist !== false ) {
 						storage.set( storageKey, open ? '1' : '0' );
 					}
@@ -532,8 +539,9 @@
 		// Cargo 3.x nests .drilldown-filters inside .drilldown-results;
 		// search the whole content area, not just immediate children.
 		var resultsEl = contentEl ? contentEl.querySelector( '.drilldown-results' ) : null;
-		// Cargo 3.9.x wraps filters in .drilldown-filters-wrapper; prefer the wrapper
-		// so the intro line moves with the sidebar.
+		// Cargo 3.9.x wraps filters in .drilldown-filters-wrapper (intro + list).
+		// Prefer the wrapper so sticky/sidebar/toggle apply to the full filter column,
+		// not only the inner .drilldown-filters list. Fall back for older Cargo.
 		var filtersEl = contentEl ? (
 			contentEl.querySelector( '.drilldown-filters-wrapper' ) ||
 			contentEl.querySelector( '.drilldown-filters' )

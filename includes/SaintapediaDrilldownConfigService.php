@@ -148,8 +148,24 @@ class SaintapediaDrilldownConfigService {
 			}
 		}
 
+		// Clamp numeric ranges; log when out-of-range so operators can fix
+		// wiki JSON / $wg without guessing (documented in README + CHANGELOG).
+		$rawSidebarWidth = $sidebarWidth;
 		$sidebarWidth = max( 120, min( 800, $sidebarWidth ) );
+		if ( $sidebarWidth !== $rawSidebarWidth ) {
+			wfLogWarning(
+				"SaintapediaDrilldown: sidebarWidth $rawSidebarWidth out of range [120,800]; " .
+					"clamped to $sidebarWidth"
+			);
+		}
+		$rawMobileBreak = $mobileBreak;
 		$mobileBreak = max( 320, min( 1600, $mobileBreak ) );
+		if ( $mobileBreak !== $rawMobileBreak ) {
+			wfLogWarning(
+				"SaintapediaDrilldown: mobileBreakpoint $rawMobileBreak out of range [320,1600]; " .
+					"clamped to $mobileBreak"
+			);
+		}
 		$theme = $this->normalizeThemeName( $theme );
 		$themeVars = $this->resolveThemeVars( $theme, is_array( $wiki ) ? ( $wiki['themeVars'] ?? null ) : null );
 
@@ -297,14 +313,18 @@ class SaintapediaDrilldownConfigService {
 
 	/**
 	 * Reject values that could break out of a CSS declaration.
+	 *
+	 * Bare numbers (e.g. "3.14") are rejected — lengths must include a unit so
+	 * invalid custom-property values cannot slip through as unitless numbers.
 	 */
 	private function isSafeCssValue( string $value ): bool {
 		if ( strlen( $value ) > 64 ) {
 			return false;
 		}
-		// Allow hex colours, rgb/rgba, simple lengths, and keyword-like tokens.
+		// Allow hex colours, rgb/rgba, unit lengths, and keyword-like tokens.
+		// Length units are required (px|em|rem|%) — not optional.
 		return (bool)preg_match(
-			'/^(?:#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|[0-9.]+(?:px|em|rem|%)?|[a-zA-Z][a-zA-Z0-9_-]*)$/',
+			'/^(?:#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|[0-9.]+(?:px|em|rem|%)|[a-zA-Z][a-zA-Z0-9_-]*)$/',
 			$value
 		);
 	}
