@@ -1,0 +1,120 @@
+{{Extension
+| status          = stable
+| hook1           = BeforePageDisplay
+| description     = Modern sidebar layout, filter chips, and mobile toggle for Cargo Special:Drilldown
+| author          = [[User:PhotographerTom|Tom O'Neill]], Saintapedia contributors
+| maintainer      = [[User:PhotographerTom|Tom O'Neill]]
+| version         = 0.6.0
+| update          = 2026-07-16
+| mediawiki       = 1.39+
+| php             = 7.4+
+| needs-updatephp = No
+| license         = MIT
+| download        = {{GithubDownload|Saintapedia|SaintapediaDrilldown}}
+| readme          = [https://github.com/Saintapedia/SaintapediaDrilldown/blob/main/README.md README]
+| changelog       = [https://github.com/Saintapedia/SaintapediaDrilldown/blob/main/CHANGELOG.md CHANGELOG]
+| parameters      = <nowiki/>
+* $wgSaintapediaDrilldownSidebarEnabled
+* $wgSaintapediaDrilldownSidebarWidth
+* $wgSaintapediaDrilldownShowFilterChips
+* $wgSaintapediaDrilldownStickyFilters
+* $wgSaintapediaDrilldownStickyChips
+* $wgSaintapediaDrilldownPillChips
+* $wgSaintapediaDrilldownMobileBreakpoint
+* $wgSaintapediaDrilldownTheme
+* $wgSaintapediaDrilldownConfigPage
+}}
+The '''SaintapediaDrilldown''' extension improves the faceted-search UI of {{ll|Extension:Cargo|Cargo}}'s '''Special:Drilldown''' with a filter sidebar, active-filter chips, sticky filters, theme presets, and a mobile show/hide toggle. Layout and colours can be tuned from '''MediaWiki:SaintapediaDrilldown-config''' without redeploying. It works entirely through ResourceLoader JavaScript and scoped CSS — Cargo and MediaWiki core are not modified.
+
+If the extension cannot find Cargo's expected DOM structure, it exits early and Cargo's default layout is shown.
+
+Developed for [https://saintapedia.org/ Saintapedia].
+
+== Features ==
+
+* Sidebar layout for <code>.drilldown-filters</code> and <code>.drilldown-results</code>
+* Removable active-filter chips above results (optional sticky bar, pill shape)
+* Sticky filter panel on desktop
+* Theme presets (<code>default</code>, <code>soft</code>, <code>compact</code>) and wiki JSON config
+* Collapsible filters below a configurable mobile breakpoint
+* Zero load on pages other than <code>Special:Drilldown</code>
+
+== Installation ==
+
+{{ExtensionInstall
+|SaintapediaDrilldown
+|registration=required
+|custom-steps=* Requires {{ll|Extension:Cargo|Cargo}} (provides Special:Drilldown). Load Cargo before this extension.
+}}
+
+Clone from GitHub:
+
+<syntaxhighlight lang="bash">
+cd extensions/
+git clone https://github.com/Saintapedia/SaintapediaDrilldown.git SaintapediaDrilldown
+</syntaxhighlight>
+
+Add to <code>LocalSettings.php</code> '''after''' Cargo:
+
+<syntaxhighlight lang="php">
+wfLoadExtension( 'Cargo' );
+wfLoadExtension( 'SaintapediaDrilldown' );
+</syntaxhighlight>
+
+No database updates are required. Restart PHP / clear object cache if ResourceLoader assets do not appear immediately.
+
+== Configuration ==
+
+; <code>$wgSaintapediaDrilldownSidebarEnabled</code>
+: Master switch. Default: <code>true</code>.
+; <code>$wgSaintapediaDrilldownSidebarWidth</code>
+: Sidebar width in pixels on desktop (120–800). Default: <code>280</code>.
+; <code>$wgSaintapediaDrilldownShowFilterChips</code>
+: Show removable filter chips above results. Default: <code>true</code>.
+; <code>$wgSaintapediaDrilldownStickyFilters</code>
+: Use <code>position: sticky</code> for the filter sidebar. Default: <code>true</code>.
+; <code>$wgSaintapediaDrilldownMobileBreakpoint</code>
+: Viewport width (px) for stacked mobile layout (320–1600). Default: <code>720</code>.
+; <code>$wgSaintapediaDrilldownStickyChips</code>
+: Sticky active-filter chips bar on desktop. Default: <code>true</code>.
+; <code>$wgSaintapediaDrilldownPillChips</code>
+: Pill-shaped chips. Default: <code>true</code>.
+; <code>$wgSaintapediaDrilldownTheme</code>
+: Theme preset: <code>default</code>, <code>soft</code>, or <code>compact</code>. Default: <code>default</code>.
+; <code>$wgSaintapediaDrilldownConfigPage</code>
+: MediaWiki page title (no namespace prefix) for JSON overrides. Default: <code>SaintapediaDrilldown-config</code>. Set to empty string to disable.
+
+=== Wiki config (JSON) ===
+
+Create <code>MediaWiki:SaintapediaDrilldown-config</code>:
+
+<syntaxhighlight lang="json">
+{
+	"theme": "soft",
+	"sidebarWidth": 300,
+	"stickyChips": true,
+	"themeVars": {
+		"stickyTop": "3.5em"
+	}
+}
+</syntaxhighlight>
+
+Wiki values override the matching <code>$wg*</code> defaults. Invalid or unsafe <code>themeVars</code> values are ignored.
+
+Sidebar width can also be overridden in CSS:
+
+<syntaxhighlight lang="css">
+.cargo-drilldown-layout {
+	--cargo-sidebar-width: 320px;
+}
+</syntaxhighlight>
+
+== See also ==
+
+* {{ll|Extension:Cargo|Cargo}} — required; provides Special:Drilldown
+* {{ll|Extension:Cargo/Browsing_data|Cargo: Browsing data}}
+* [https://github.com/Saintapedia/SaintapediaDrilldown/issues Issue tracker]
+
+{{Used by}}
+
+[[Category:Extensions by Saintapedia{{#translation:}}]]

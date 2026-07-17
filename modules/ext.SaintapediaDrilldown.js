@@ -18,7 +18,10 @@
 		sidebarWidth:  mw.config.get( 'saintapediaDrilldownSidebarWidth',    280 ),
 		showChips:     mw.config.get( 'saintapediaDrilldownShowFilterChips',  true ),
 		stickyFilters: mw.config.get( 'saintapediaDrilldownStickyFilters',    true ),
-		mobileBreak:   mw.config.get( 'saintapediaDrilldownMobileBreakpoint', 720 )
+		stickyChips:   mw.config.get( 'saintapediaDrilldownStickyChips',      true ),
+		pillChips:     mw.config.get( 'saintapediaDrilldownPillChips',        true ),
+		mobileBreak:   mw.config.get( 'saintapediaDrilldownMobileBreakpoint', 720 ),
+		theme:         mw.config.get( 'saintapediaDrilldownTheme',            'default' )
 	};
 
 	// Namespace the key per wiki so wikifarm installs don't share state.
@@ -265,8 +268,13 @@
 		bar.setAttribute( 'role', 'region' );
 		bar.setAttribute( 'aria-label', mw.msg( 'saintapediadrilldown-active-filters' ) );
 
+		if ( cfg.stickyChips ) {
+			bar.classList.add( 'cargo-chips-sticky' );
+		}
+
 		filters.forEach( function ( f ) {
-			var chip   = el( 'span', 'cargo-filter-chip' );
+			var chipCls = 'cargo-filter-chip' + ( cfg.pillChips ? ' cargo-chip-pill' : '' );
+			var chip   = el( 'span', chipCls );
 			var text   = el( 'span', 'cargo-chip-label',
 				mw.msg( 'saintapediadrilldown-chip-text', f.label, f.value ) );
 			var qs     = f.isFamily
@@ -408,6 +416,12 @@
 
 		layoutEl.style.setProperty( '--cargo-sidebar-width', cfg.sidebarWidth + 'px' );
 		if ( cfg.stickyFilters ) { filtersEl.classList.add( 'cargo-filters-sticky' ); }
+		if ( cfg.theme && cfg.theme !== 'default' ) {
+			// The following CSS classes are used here:
+			// * cargo-theme-soft
+			// * cargo-theme-compact
+			layoutEl.classList.add( 'cargo-theme-' + cfg.theme );
+		}
 
 		var toggle = addMobileToggle( filtersEl );
 		initBreakpointWatcher( layoutEl, filtersEl, toggle );

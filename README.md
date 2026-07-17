@@ -10,6 +10,8 @@ A [MediaWiki](https://www.mediawiki.org/) extension that modernises the faceted-
 | **Sticky filters** | The sidebar scrolls independently, staying visible as the user scrolls through long result sets. |
 | **Active-filter chips** | Removable tags appear above results showing every currently-applied filter. A *Clear all filters* link appears when more than one filter is active. |
 | **Mobile toggle** | Below the configurable breakpoint the layout stacks vertically (results on top, filters below a *Show/Hide filters* button). |
+| **Wiki config** | Admins can tune layout and theme from `MediaWiki:SaintapediaDrilldown-config` (JSON) without redeploying PHP. |
+| **Themes** | Built-in `default` / `soft` / `compact` presets, plus per-token colour overrides. |
 | **Zero core changes** | Works entirely via JavaScript DOM-wrapping and scoped CSS — no Cargo or MediaWiki core files are modified. |
 
 ---
@@ -83,7 +85,56 @@ This step is optional — no database schema changes are made and ResourceLoader
 
 ## Configuration
 
-All variables can be set in `LocalSettings.php` after `wfLoadExtension( 'SaintapediaDrilldown' );`.
+Settings resolve in this order:
+
+1. **`MediaWiki:SaintapediaDrilldown-config`** (JSON on the wiki) — preferred for day-to-day polish
+2. **`$wg*` in `LocalSettings.php`** — defaults and server-side lock-in
+3. Extension defaults
+
+### Wiki config page (recommended)
+
+Create or edit `MediaWiki:SaintapediaDrilldown-config` with a JSON object. Example:
+
+```json
+{
+  "sidebarWidth": 300,
+  "showFilterChips": true,
+  "stickyFilters": true,
+  "stickyChips": true,
+  "pillChips": true,
+  "mobileBreakpoint": 720,
+  "theme": "soft",
+  "themeVars": {
+    "stickyTop": "3.5em",
+    "radius": "10px",
+    "filterBg": "#f4f7fb"
+  }
+}
+```
+
+| Key | Type | Notes |
+|-----|------|--------|
+| `enabled` | bool | Master switch (same as `$wgSaintapediaDrilldownSidebarEnabled`) |
+| `sidebarWidth` | int | 120–800 px |
+| `showFilterChips` | bool | Active-filter chips |
+| `stickyFilters` | bool | Sticky sidebar |
+| `stickyChips` | bool | Sticky chips bar (desktop) |
+| `pillChips` | bool | Pill-shaped chips |
+| `mobileBreakpoint` | int | 320–1600 px |
+| `theme` | string | `default`, `soft`, or `compact` |
+| `themeVars` | object | Optional CSS tokens: `gap`, `radius`, `filterBg`, `filterBorder`, `chipBg`, `chipBorder`, `chipText`, `toggleBg`, `toggleText`, `activeBarBg`, `stickyTop` |
+
+A sample file ships at `config/example-SaintapediaDrilldown-config.json`.
+
+You can wrap the JSON in `<pre>` or `<nowiki>` if preferred; the extension extracts the first `{…}` object.
+
+Disable wiki overrides with:
+
+```php
+$wgSaintapediaDrilldownConfigPage = '';
+```
+
+---
 
 ### `$wgSaintapediaDrilldownSidebarEnabled`
 
@@ -165,15 +216,49 @@ $wgSaintapediaDrilldownMobileBreakpoint = 720;
 
 ---
 
+### `$wgSaintapediaDrilldownStickyChips` / `$wgSaintapediaDrilldownPillChips`
+
+| Variable | Default |
+|----------|---------|
+| `$wgSaintapediaDrilldownStickyChips` | `true` |
+| `$wgSaintapediaDrilldownPillChips` | `true` |
+
+Sticky chips keep the active-filter bar visible while scrolling results (desktop). Pill chips use a fully rounded chip shape.
+
+---
+
+### `$wgSaintapediaDrilldownTheme`
+
+| Type | Default | Values |
+|------|---------|--------|
+| `string` | `default` | `default`, `soft`, `compact` |
+
+```php
+$wgSaintapediaDrilldownTheme = 'soft';
+```
+
+---
+
+### `$wgSaintapediaDrilldownConfigPage`
+
+| Type | Default |
+|------|---------|
+| `string` | `SaintapediaDrilldown-config` |
+
+MediaWiki-namespace page title (without the `MediaWiki:` prefix) that holds JSON overrides. Set to `''` to ignore wiki config.
+
+---
+
 ## How It Works
 
-### PHP — `includes/Hooks.php`
+### PHP — `includes/Hooks.php` + `SaintapediaDrilldownConfigService`
 
 Implements `BeforePageDisplay`. On any `Special:Drilldown` or `Special:Drilldown/*` request it:
 
-1. Reads the PHP configuration variables.
-2. Forwards them to the browser as `mw.config` values.
-3. Queues the `ext.SaintapediaDrilldown` ResourceLoader module.
+1. Merges wiki JSON config with `$wg*` defaults (WAN-cached by page revid).
+2. Forwards layout options to the browser as `mw.config` values.
+3. Emits theme CSS custom properties and the mobile `@media` breakpoint inline.
+4. Queues the `ext.SaintapediaDrilldown` ResourceLoader module.
 
 The module is **only loaded on drilldown pages**, keeping its footprint zero on all other pages.
 
@@ -201,7 +286,7 @@ Layout and toggle selectors are scoped to `.cargo-drilldown-layout`; chip select
 
 ### Changing colours
 
-Override CSS custom properties in `MediaWiki:Common.css`:
+Prefer `theme` / `themeVars` in `MediaWiki:SaintapediaDrilldown-config`. You can still override CSS custom properties in `MediaWiki:Common.css`:
 
 ```css
 .cargo-drilldown-layout {
@@ -212,6 +297,8 @@ Override CSS custom properties in `MediaWiki:Common.css`:
     --cargo-chip-text:      #0645ad;   /* chip link colour */
     --cargo-toggle-bg:      #2a6496;   /* mobile button background */
     --cargo-active-bar-bg:  #ddeeff;   /* chips bar background */
+    --cargo-radius:         8px;       /* corners */
+    --cargo-sticky-top:     3.5em;     /* Vector 2022 sticky header offset */
 }
 ```
 

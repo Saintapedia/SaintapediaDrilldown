@@ -3,6 +3,24 @@
 All notable changes are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.6.0] — 2026-07-16
+
+### Added
+
+- **Wiki config page** — `MediaWiki:SaintapediaDrilldown-config` (JSON) can override
+  layout and polish options without editing `LocalSettings.php`. Cached by page
+  revid; falls back to `$wg*` when the page is missing or invalid.
+- **Theme presets** — `default`, `soft`, and `compact` (via `$wgSaintapediaDrilldownTheme`
+  or wiki `"theme"`). Optional `"themeVars"` for colours, radius, gap, and sticky offset.
+- **Sticky chips** — active-filter bar can stick under the header while scrolling
+  results (`stickyChips`, default on).
+- **Pill chips** — rounded filter chips by default (`pillChips`).
+
+### Changed
+
+- **Visual polish** — softer sidebar shadow, Vector-friendlier colours, clearer
+  filter section hierarchy, refined clear-all link, and table-tabs underline.
+
 ## [0.5.2] — 2026-07-16
 
 ### Fixed

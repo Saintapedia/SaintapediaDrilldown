@@ -28,9 +28,10 @@ class Hooks implements BeforePageDisplayHook {
 			return;
 		}
 
-		$config = $out->getConfig();
+		$configService = new SaintapediaDrilldownConfigService();
+		$cfg = $configService->getConfig( $out );
 
-		if ( !$config->get( 'SaintapediaDrilldownSidebarEnabled' ) ) {
+		if ( !$cfg['enabled'] ) {
 			return;
 		}
 
@@ -39,39 +40,64 @@ class Hooks implements BeforePageDisplayHook {
 			return;
 		}
 
-		// Clamp config values to documented valid ranges.
-		$rawWidth      = (int)$config->get( 'SaintapediaDrilldownSidebarWidth' );
-		$rawBreakpoint = (int)$config->get( 'SaintapediaDrilldownMobileBreakpoint' );
-		$sidebarWidth  = max( 120, min( 800, $rawWidth ) );
-		$mobileBreak   = max( 320, min( 1600, $rawBreakpoint ) );
-		$logger = LoggerFactory::getInstance( 'SaintapediaDrilldown' );
-		if ( $sidebarWidth !== $rawWidth ) {
-			$logger->warning(
-				'SaintapediaDrilldownSidebarWidth value {value} is out of range [120, 800]; clamped to {clamped}.',
-				[ 'value' => $rawWidth, 'clamped' => $sidebarWidth ]
-			);
-		}
-		if ( $mobileBreak !== $rawBreakpoint ) {
-			$logger->warning(
-				'SaintapediaDrilldownMobileBreakpoint value {value} is out of range [320, 1600]; clamped to {clamped}.',
-				[ 'value' => $rawBreakpoint, 'clamped' => $mobileBreak ]
-			);
-		}
+		$sidebarWidth = $cfg['sidebarWidth'];
+		$mobileBreak = $cfg['mobileBreakpoint'];
 
 		$out->addJsConfigVars( [
-			'saintapediaDrilldownSidebarWidth'     => $sidebarWidth,
-			'saintapediaDrilldownShowFilterChips'  => (bool)$config->get( 'SaintapediaDrilldownShowFilterChips' ),
-			'saintapediaDrilldownStickyFilters'    => (bool)$config->get( 'SaintapediaDrilldownStickyFilters' ),
+			'saintapediaDrilldownSidebarWidth' => $sidebarWidth,
+			'saintapediaDrilldownShowFilterChips' => $cfg['showFilterChips'],
+			'saintapediaDrilldownStickyFilters' => $cfg['stickyFilters'],
+			'saintapediaDrilldownStickyChips' => $cfg['stickyChips'],
+			'saintapediaDrilldownPillChips' => $cfg['pillChips'],
 			'saintapediaDrilldownMobileBreakpoint' => $mobileBreak,
+			'saintapediaDrilldownTheme' => $cfg['theme'],
 		] );
 
 		// Styles loaded render-blocking to avoid a style pop when JS applies the flex layout.
 		$out->addModuleStyles( 'ext.SaintapediaDrilldown.styles' );
 		$out->addModules( 'ext.SaintapediaDrilldown' );
 
-		// Always emit the @media block so the default 720px breakpoint
-		// gets a CSS-only fallback (avoids FOUC before JS runs).
-		$out->addInlineStyle( $this->mobileBreakpointCss( $mobileBreak ) );
+		// Theme tokens + mobile breakpoint (CSS-only fallback before JS).
+		$out->addInlineStyle(
+			$this->themeCss( $cfg['themeVars'] ) .
+			$this->mobileBreakpointCss( $mobileBreak )
+		);
+	}
+
+	/**
+	 * Emit CSS custom properties for theme tokens on the layout root.
+	 *
+	 * @param array<string,string> $vars
+	 */
+	private function themeCss( array $vars ): string {
+		$map = [
+			'gap' => '--cargo-gap',
+			'radius' => '--cargo-radius',
+			'filterBg' => '--cargo-filter-bg',
+			'filterBorder' => '--cargo-filter-border',
+			'chipBg' => '--cargo-chip-bg',
+			'chipBorder' => '--cargo-chip-border',
+			'chipText' => '--cargo-chip-text',
+			'toggleBg' => '--cargo-toggle-bg',
+			'toggleText' => '--cargo-toggle-text',
+			'activeBarBg' => '--cargo-active-bar-bg',
+			'stickyTop' => '--cargo-sticky-top',
+		];
+
+		$decls = [];
+		foreach ( $map as $key => $cssVar ) {
+			if ( !isset( $vars[$key] ) ) {
+				continue;
+			}
+			// Values already validated in the config service.
+			$decls[] = $cssVar . ':' . $vars[$key];
+		}
+
+		if ( $decls === [] ) {
+			return '';
+		}
+
+		return '.cargo-drilldown-layout{' . implode( ';', $decls ) . '}';
 	}
 
 	/**
@@ -82,10 +108,13 @@ class Hooks implements BeforePageDisplayHook {
 		$mobileCss =
 			'.cargo-drilldown-layout{flex-direction:column}' .
 			'.cargo-drilldown-layout .drilldown-results-content{order:1;width:100%}' .
-			'.cargo-drilldown-layout .drilldown-filters' .
+			'.cargo-drilldown-layout .drilldown-filters,' .
+			'.cargo-drilldown-layout .drilldown-filters-wrapper' .
 				'{order:2;flex:none;width:100%;max-width:none;position:static;max-height:none;overflow:visible}' .
-			'.cargo-drilldown-layout .drilldown-filters.cargo-filters-collapsed{display:none}' .
-			'.cargo-drilldown-layout .cargo-filters-toggle{display:block;order:2;margin-top:0.5em}';
+			'.cargo-drilldown-layout .drilldown-filters.cargo-filters-collapsed,' .
+			'.cargo-drilldown-layout .drilldown-filters-wrapper.cargo-filters-collapsed{display:none}' .
+			'.cargo-drilldown-layout .cargo-filters-toggle{display:block;order:2;margin-top:0.5em}' .
+			'.cargo-drilldown-layout .cargo-active-filters.cargo-chips-sticky{position:static}';
 
 		return '@media(max-width:' . ( $bp - 1 ) . 'px){' . $mobileCss . '}';
 	}

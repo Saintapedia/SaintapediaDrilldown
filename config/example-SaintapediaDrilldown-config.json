@@ -1,0 +1,13 @@
+{
+	"sidebarWidth": 300,
+	"showFilterChips": true,
+	"stickyFilters": true,
+	"stickyChips": true,
+	"pillChips": true,
+	"mobileBreakpoint": 720,
+	"theme": "soft",
+	"themeVars": {
+		"stickyTop": "3.5em",
+		"radius": "10px"
+	}
+}
