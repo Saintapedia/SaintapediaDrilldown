@@ -3,6 +3,17 @@
 All notable changes are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.6.2] — 2026-07-18
+
+### Changed
+
+- **Table chooser pills** — Cargo’s “Choose a table” tab bar is restyled as
+  rounded pill controls (selected = primary colour). Overrides Cargo’s float
+  image tabs and the mobile off-canvas drawer so the chooser stays an in-flow
+  wrap row on all widths. Theme tokens apply to the bar as well as the layout.
+- **Single-table prompt** — when only one Cargo table exists, the “Choose a
+  table” label is hidden; the selected pill remains.
+
 ## [0.6.1] — 2026-07-17
 
 ### Added

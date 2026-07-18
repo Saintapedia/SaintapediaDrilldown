@@ -233,10 +233,26 @@
 		var spContent = resultsEl.querySelector( '.mw-spcontent' ) || resultsEl;
 
 		// Hoist the table-tabs wrapper to the top of spContent so it stays full-width.
-		// Add a class so CSS can target it without an ID selector.
+		// Classes enable pill CSS (no ID selectors) and single-table label hide.
 		var tabsEl = spContent.querySelector( '#drilldown-tables-tabs-wrapper' );
 		if ( tabsEl ) {
+			// The following CSS classes are used here:
+			// * cargo-drilldown-table-tabs
+			// * cargo-table-tabs--single
+			// * cargo-table-tabs-label
+			// * cargo-table-tabs-list
 			tabsEl.classList.add( 'cargo-drilldown-table-tabs' );
+			var tabsLabel = tabsEl.querySelector( '#tableTabsHeader' );
+			if ( tabsLabel ) {
+				tabsLabel.classList.add( 'cargo-table-tabs-label' );
+			}
+			var tabsList = tabsEl.querySelector( 'ul' );
+			if ( tabsList ) {
+				tabsList.classList.add( 'cargo-table-tabs-list' );
+			}
+			if ( tabsEl.querySelectorAll( 'li.tableName' ).length <= 1 ) {
+				tabsEl.classList.add( 'cargo-table-tabs--single' );
+			}
 			spContent.insertBefore( tabsEl, spContent.firstChild );
 		}
 
@@ -582,6 +598,14 @@
 			// * cargo-theme-soft
 			// * cargo-theme-compact
 			layoutEl.classList.add( 'cargo-theme-' + cfg.theme );
+			// Table pills sit outside the flex layout; mirror theme class for soft tweaks.
+			var tabsBar = contentEl.querySelector( '.cargo-drilldown-table-tabs' );
+			if ( tabsBar ) {
+				// The following CSS classes are used here:
+				// * cargo-theme-soft
+				// * cargo-theme-compact
+				tabsBar.classList.add( 'cargo-theme-' + cfg.theme );
+			}
 		}
 
 		if ( cfg.collapsibleSections ) {

@@ -100,7 +100,9 @@ class Hooks implements BeforePageDisplayHook {
 			return '';
 		}
 
-		return '.cargo-drilldown-layout{' . implode( ';', $decls ) . '}';
+		// Layout + table-pill bar (tabs sit outside the flex layout).
+		return '.cargo-drilldown-layout,.cargo-drilldown-table-tabs{' .
+			implode( ';', $decls ) . '}';
 	}
 
 	/**
