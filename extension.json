@@ -1,6 +1,6 @@
 {
 	"name": "SaintapediaDrilldown",
-	"version": "0.6.1",
+	"version": "0.6.2",
 	"author": [ "Tom O'Neill", "Saintapedia contributors" ],
 	"url": "https://www.mediawiki.org/wiki/Extension:SaintapediaDrilldown",
 	"descriptionmsg": "saintapediadrilldown-desc",
