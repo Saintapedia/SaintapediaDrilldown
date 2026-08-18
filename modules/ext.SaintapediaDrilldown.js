@@ -177,6 +177,23 @@
 
 	/* -- DOM helper ---------------------------------------------------- */
 
+	/**
+	 * Replace every img[src*="filter-x.png"] Cargo emits with a styled span.
+	 * Cargo's image assets are often missing on non-standard installs; this
+	 * makes the remove-filter affordance image-free and always visible.
+	 */
+	function replaceFilterXImages() {
+		var imgs = document.querySelectorAll( 'img[src*="filter-x.png"]' );
+		var i, img, span;
+		for ( i = 0; i < imgs.length; i++ ) {
+			img  = imgs[ i ];
+			span = document.createElement( 'span' );
+			span.className = 'cargo-filter-x-icon';
+			span.setAttribute( 'aria-hidden', 'true' );
+			img.parentNode.replaceChild( span, img );
+		}
+	}
+
 	function el( tag, cls, text ) {
 		var node = document.createElement( tag );
 		if ( cls ) {
@@ -566,12 +583,17 @@
 			mw.log.warn( 'SaintapediaDrilldown: .drilldown-results not found; layout skipped.' );
 			return;
 		}
+		if ( resultsEl.dataset.saintapediadrilldownInit ) { return; }
+		resultsEl.dataset.saintapediadrilldownInit = '1';
+
+		// Replace filter-x.png images before the filtersEl guard so the breadcrumb
+		// icons are fixed even if the filter sidebar is absent from the DOM.
+		replaceFilterXImages();
+
 		if ( !filtersEl ) {
 			mw.log.warn( 'SaintapediaDrilldown: .drilldown-filters not found; layout skipped.' );
 			return;
 		}
-		if ( resultsEl.dataset.saintapediadrilldownInit ) { return; }
-		resultsEl.dataset.saintapediadrilldownInit = '1';
 
 		var layoutEl = applyFlexLayout( filtersEl, resultsEl, contentEl );
 

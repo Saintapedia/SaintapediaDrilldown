@@ -485,3 +485,31 @@
 	filter: brightness( 1.06 );
 }
 /* stylelint-enable no-descending-specificity */
+
+/* 9. Cargo filter-x.png replacement — image-free × for Cargo's remove-filter
+   breadcrumb links. Cargo's assets are often missing on non-standard installs.
+   Scoped to .drilldown-results (not .cargo-drilldown-layout) because these
+   links appear in Cargo's header before our JS restructures the DOM. */
+.drilldown-results a .cargo-filter-x-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.1em;
+	height: 1.1em;
+	font-size: 0.8em;
+	font-weight: bold;
+	vertical-align: middle;
+	border-radius: 50%;
+	background: #a2a9b1;
+	color: #fff;
+}
+
+.drilldown-results a .cargo-filter-x-icon::before {
+	content: '\00d7';
+	line-height: 1;
+}
+
+.drilldown-results a:hover .cargo-filter-x-icon,
+.drilldown-results a:focus .cargo-filter-x-icon {
+	background: #c00;
+}
