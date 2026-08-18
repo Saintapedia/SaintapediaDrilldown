@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 
 namespace MediaWiki\Extension\SaintapediaDrilldown;
 
+use CargoUtils;
 use ExtensionRegistry;
 use MediaWiki\Hook\BeforePageDisplayHook;
 use MediaWiki\Logger\LoggerFactory;
@@ -28,15 +29,23 @@ class Hooks implements BeforePageDisplayHook {
 			return;
 		}
 
+		$title = $out->getTitle();
+		if ( $title === null || !$title->isSpecial( 'Drilldown' ) ) {
+			return;
+		}
+
+		// Redirect away from calendar URLs whose formatBy field is absent from
+		// the current table, preventing a PHP Warning in CargoDrilldownPage.php.
+		// Runs before the enabled check — this is a bug fix, not a UI feature.
+		// Cargo bug; guard lives here until fixed upstream.
+		if ( $this->guardCalendarFormat( $out, $title ) ) {
+			return;
+		}
+
 		$configService = new SaintapediaDrilldownConfigService();
 		$cfg = $configService->getConfig( $out );
 
 		if ( !$cfg['enabled'] ) {
-			return;
-		}
-
-		$title = $out->getTitle();
-		if ( $title === null || !$title->isSpecial( 'Drilldown' ) ) {
 			return;
 		}
 
@@ -65,6 +74,63 @@ class Hooks implements BeforePageDisplayHook {
 			$this->themeCss( $cfg['themeVars'] ) .
 			$this->mobileBreakpointCss( $mobileBreak )
 		);
+	}
+
+	/**
+	 * Guard against a Cargo bug (CargoDrilldownPage.php:2212) where accessing
+	 * a formatBy field that does not exist on the drilldown table causes a PHP
+	 * Warning. When the field is absent we redirect to the same URL without
+	 * the format/formatBy params so the page renders safely.
+	 *
+	 * Returns true when a redirect has been queued (caller should return early).
+	 *
+	 * @param \OutputPage $out
+	 * @param \Title $title Already-verified Drilldown special-page title.
+	 * @return bool
+	 */
+	private function guardCalendarFormat( \OutputPage $out, \Title $title ): bool {
+		$request = $out->getRequest();
+
+		if ( $request->getText( 'format' ) !== 'calendar' ) {
+			return false;
+		}
+		$formatBy = $request->getText( 'formatBy' );
+		if ( $formatBy === '' ) {
+			return false;
+		}
+
+		// Title text is "Drilldown/TableName"; extract the table part.
+		$parts     = explode( '/', $title->getText(), 2 );
+		$tableName = $parts[1] ?? '';
+		if ( $tableName === '' ) {
+			return false;
+		}
+
+		try {
+			$tableSchemas = CargoUtils::getTableSchemas( [ $tableName ] );
+		} catch ( \Throwable $e ) {
+			// Cargo API unavailable or changed; let Cargo handle it.
+			return false;
+		}
+
+		if ( !isset( $tableSchemas[$tableName] ) ) {
+			// Table unknown to Cargo; let Cargo render its own error.
+			return false;
+		}
+
+		$fields = $tableSchemas[$tableName]->mFieldDescriptions ?? [];
+		if ( isset( $fields[$formatBy] ) ) {
+			// Field is valid; nothing to do.
+			return false;
+		}
+
+		// Field missing from this table: strip format + formatBy and redirect.
+		// OutputPage::redirect() sets $mRedirect; output() honours it after the
+		// hook returns — it does not fire immediately.
+		$params = $request->getQueryValues();
+		unset( $params['format'], $params['formatBy'], $params['title'] );
+		$out->redirect( $title->getLocalURL( $params ) );
+		return true;
 	}
 
 	/**
