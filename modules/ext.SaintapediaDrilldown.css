@@ -512,5 +512,4 @@
 .drilldown-results a:hover .cargo-filter-x-icon,
 .drilldown-results a:focus .cargo-filter-x-icon {
 	background: #c00;
-	outline: none;
 }
