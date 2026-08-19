@@ -263,22 +263,37 @@
 	 * filtersEl is a child of mw-spcontent (not #mw-content-text), all DOM
 	 * mutations must operate on mw-spcontent as the reference parent.
 	 */
-	function applyFlexLayout( filtersEl, resultsEl, contentEl, hiddenTables ) {
-		if ( !contentEl ) {
-			mw.log.warn( 'SaintapediaDrilldown: content element not found; sidebar layout skipped.' );
-			return null;
-		}
+	/**
+	 * Shared parent of both the table tabs and the filters, per the Cargo DOM
+	 * structure documented above applyFlexLayout. Falls back to resultsEl
+	 * itself if .mw-spcontent is absent.
+	 *
+	 * @param {HTMLElement} resultsEl
+	 * @return {HTMLElement}
+	 */
+	function getSpContent( resultsEl ) {
+		return resultsEl.querySelector( '.mw-spcontent' ) || resultsEl;
+	}
 
-		// The shared parent of both tabs and filters is mw-spcontent (inside resultsEl).
-		// Fall back to resultsEl itself if mw-spcontent is absent.
-		var spContent = resultsEl.querySelector( '.mw-spcontent' ) || resultsEl;
-
-		// Hoist the table-tabs wrapper to the top of spContent so it stays full-width.
-		// Classes enable pill CSS (no ID selectors) and single-table label hide.
+	/**
+	 * Removes table-tab entries whose table name is in hiddenTables, and
+	 * reveals the tabs bar (see Hooks::hiddenTabsCss, which hides it inline
+	 * until this runs so a soon-to-be-removed tab never flashes on screen).
+	 *
+	 * Deliberately independent of applyFlexLayout / the filter sidebar: Cargo
+	 * still prints the tabs wrapper on tables with no filterable fields (a
+	 * likely hide target), and those pages have no .drilldown-filters at all,
+	 * so hiding must not be gated on the sidebar being found.
+	 *
+	 * @param {HTMLElement} resultsEl
+	 * @param {Array.<string>} hiddenTables
+	 */
+	function hideConfiguredTabs( resultsEl, hiddenTables ) {
+		var spContent = getSpContent( resultsEl );
 		var tabsEl = spContent.querySelector( '#drilldown-tables-tabs-wrapper' );
-		if ( tabsEl && hiddenTables && hiddenTables.length ) {
-			// Drop tabs for tables whose declaring template is flagged hidden
-			// (see saintapediaDrilldownHiddenTableCategory, resolved server-side).
+		if ( !tabsEl ) { return; }
+
+		if ( hiddenTables && hiddenTables.length ) {
 			var tabItems = tabsEl.querySelectorAll( 'li.tableName' );
 			var j, tabLink, tabItem;
 			for ( j = 0; j < tabItems.length; j++ ) {
@@ -291,9 +306,28 @@
 			// No tables left to choose between: drop the whole tabs bar.
 			if ( tabsEl.querySelectorAll( 'li.tableName' ).length === 0 ) {
 				tabsEl.parentNode.removeChild( tabsEl );
-				tabsEl = null;
+				return;
 			}
 		}
+
+		// Inline style always wins over the stylesheet rule regardless of
+		// specificity, so this reliably undoes Hooks::hiddenTabsCss.
+		tabsEl.style.visibility = '';
+	}
+
+	function applyFlexLayout( filtersEl, resultsEl, contentEl ) {
+		if ( !contentEl ) {
+			mw.log.warn( 'SaintapediaDrilldown: content element not found; sidebar layout skipped.' );
+			return null;
+		}
+
+		var spContent = getSpContent( resultsEl );
+
+		// Hoist the table-tabs wrapper to the top of spContent so it stays
+		// full-width. Any hidden tabs were already removed by
+		// hideConfiguredTabs before this runs. Classes enable pill CSS
+		// (no ID selectors) and single-table label hide.
+		var tabsEl = spContent.querySelector( '#drilldown-tables-tabs-wrapper' );
 		if ( tabsEl ) {
 			// The following CSS classes are used here:
 			// * cargo-drilldown-table-tabs
@@ -632,12 +666,18 @@
 		// icons are fixed even if the filter sidebar is absent from the DOM.
 		replaceFilterXImages();
 
+		// Also before the filtersEl guard: Cargo prints the tabs wrapper even on
+		// tables with no filterable fields (no .drilldown-filters at all), and
+		// those are a likely hide target — tab hiding must not depend on the
+		// sidebar being found.
+		hideConfiguredTabs( resultsEl, cfg.hiddenTables );
+
 		if ( !filtersEl ) {
 			mw.log.warn( 'SaintapediaDrilldown: .drilldown-filters not found; layout skipped.' );
 			return;
 		}
 
-		var layoutEl = applyFlexLayout( filtersEl, resultsEl, contentEl, cfg.hiddenTables );
+		var layoutEl = applyFlexLayout( filtersEl, resultsEl, contentEl );
 
 		// Layout wrapper required for sidebar width, sticky, and toggle.
 		if ( !layoutEl ) { return; }

@@ -10,9 +10,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Hide tables from the drilldown tabs** — new `$wgSaintapediaDrilldownHiddenTableCategory`
   / wiki-config `hiddenTableCategory`. Put a Cargo table's `#cargo_declare`
   template page in the named category and its tab is dropped from the
-  Special:Drilldown table chooser (client-side, before it's hoisted/styled).
-  Disabled by default. Only affects tab visibility — the table itself,
-  its data, and direct browsing to `Special:Drilldown/TableName` are untouched.
+  Special:Drilldown table chooser. Disabled by default. Direct browsing to
+  `Special:Drilldown/TableName` is untouched; a bare `Special:Drilldown`
+  request is redirected away from a hidden default table. Tab hiding runs
+  independently of the filter-sidebar layout (tables with no filterable
+  fields still get their tabs filtered) and the bar stays hidden via inline
+  CSS until JS removes the flagged tabs, avoiding a flash of the wrong tabs.
+  Category→table resolution is two queries total, cached 5 minutes.
 
 ## [0.6.2] — 2026-07-18
 
