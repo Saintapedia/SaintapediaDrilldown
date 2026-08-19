@@ -21,7 +21,8 @@
 		}
 	},
 	"Hooks": {
-		"BeforePageDisplay": "main"
+		"BeforePageDisplay": "main",
+		"SpecialPageBeforeExecute": "main"
 	},
 	"ResourceModules": {
 		"ext.SaintapediaDrilldown.styles": {
