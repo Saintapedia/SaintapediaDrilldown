@@ -123,6 +123,7 @@ Create or edit `MediaWiki:SaintapediaDrilldown-config` with a JSON object. Examp
 | `mobileBreakpoint` | int | 320–1600 px |
 | `theme` | string | `default`, `soft`, or `compact` |
 | `themeVars` | object | Optional CSS tokens: `gap`, `radius`, `filterBg`, `filterBorder`, `chipBg`, `chipBorder`, `chipText`, `toggleBg`, `toggleText`, `activeBarBg`, `stickyTop` |
+| `hiddenTableCategory` | string | Category name (no `Category:` prefix); tables whose `#cargo_declare` template is in it are hidden from the table-chooser tabs. Empty disables. |
 
 A sample file ships at `config/example-SaintapediaDrilldown-config.json`.
 
@@ -246,6 +247,31 @@ $wgSaintapediaDrilldownTheme = 'soft';
 | `string` | `SaintapediaDrilldown-config` |
 
 MediaWiki-namespace page title (without the `MediaWiki:` prefix) that holds JSON overrides. Set to `''` to ignore wiki config.
+
+---
+
+### `$wgSaintapediaDrilldownHiddenTableCategory`
+
+| Type | Default |
+|------|---------|
+| `string` | `''` (disabled) |
+
+Hides specific Cargo tables from the Special:Drilldown table-chooser tabs. Cargo has no built-in flag for this, so it works by convention: put the table's `#cargo_declare` template page in a category, and name that category here (without the `Category:` prefix). Any Cargo table whose declaring template belongs to that category is dropped from the tabs bar; querying, storage, and browsing `Special:Drilldown/TableName` directly are unaffected.
+
+The one exception: Cargo defaults a bare `Special:Drilldown` request (no table subpage) to its first table. If that table happens to be hidden, the extension redirects to the first non-hidden table instead — otherwise a "hidden" table would still be what visitors land on.
+
+```php
+$wgSaintapediaDrilldownHiddenTableCategory = 'Hidden from drilldown tabs';
+```
+
+Then, in the template that declares the table (e.g. `Template:Saints table`):
+
+```wikitext
+{{#cargo_declare: _table=Saints | ... }}
+[[Category:Hidden from drilldown tabs]]
+```
+
+Resolution costs two queries total (category membership, then one batch read of Cargo's table→template mapping) regardless of how many Cargo tables exist, and is cached for 5 minutes per category name. While JS removes the flagged tabs, the tabs bar is kept `visibility:hidden` via inline CSS so a soon-to-be-removed tab never flashes on screen; if the JS module fails to load, the whole bar stays hidden rather than showing everything unfiltered (same trade-off the sidebar layout already makes for the render-blocking styles above).
 
 ---
 

@@ -24,7 +24,8 @@
 		theme:         mw.config.get( 'saintapediaDrilldownTheme',            'default' ),
 		collapsibleSections: mw.config.get( 'saintapediaDrilldownCollapsibleSections', true ),
 		sectionsStartCollapsed: mw.config.get( 'saintapediaDrilldownSectionsStartCollapsed', false ),
-		largeHeadings: mw.config.get( 'saintapediaDrilldownLargeHeadings', true )
+		largeHeadings: mw.config.get( 'saintapediaDrilldownLargeHeadings', true ),
+		hiddenTables: mw.config.get( 'saintapediaDrilldownHiddenTables', [] )
 	};
 
 	// Namespace the key per wiki so wikifarm installs don't share state.
@@ -175,6 +176,29 @@
 		return kept.toString();
 	}
 
+	/**
+	 * Extracts the Cargo table name from a table-tab link's href.
+	 * Cargo builds these as Special:Drilldown/TableName, either as a path
+	 * (short-URL wikis) or as a `title` query param (index.php?title=… wikis).
+	 * The table name is always the final path segment.
+	 *
+	 * @param {string} href
+	 * @return {string}
+	 */
+	function tableNameFromTabHref( href ) {
+		var qIndex   = href.indexOf( '?' );
+		var path     = qIndex === -1 ? href : href.slice( 0, qIndex );
+		var query    = qIndex === -1 ? '' : href.slice( qIndex + 1 );
+		var titleParam = new URLSearchParams( query ).get( 'title' );
+		var subject  = titleParam || path;
+		var segments = subject.split( '/' );
+		try {
+			return decodeURIComponent( segments[ segments.length - 1 ] || '' );
+		} catch ( e ) {
+			return segments[ segments.length - 1 ] || '';
+		}
+	}
+
 	/* -- DOM helper ---------------------------------------------------- */
 
 	/**
@@ -239,18 +263,72 @@
 	 * filtersEl is a child of mw-spcontent (not #mw-content-text), all DOM
 	 * mutations must operate on mw-spcontent as the reference parent.
 	 */
+	/**
+	 * Shared parent of both the table tabs and the filters, per the Cargo DOM
+	 * structure documented above applyFlexLayout. Falls back to resultsEl
+	 * itself if .mw-spcontent is absent.
+	 *
+	 * @param {HTMLElement} resultsEl
+	 * @return {HTMLElement}
+	 */
+	function getSpContent( resultsEl ) {
+		return resultsEl.querySelector( '.mw-spcontent' ) || resultsEl;
+	}
+
+	/**
+	 * Removes table-tab entries whose table name is in hiddenTables, and
+	 * reveals the tabs bar (see Hooks::hiddenTabsCss, which hides it inline
+	 * until this runs so a soon-to-be-removed tab never flashes on screen).
+	 *
+	 * Deliberately independent of applyFlexLayout / the filter sidebar: Cargo
+	 * still prints the tabs wrapper on tables with no filterable fields (a
+	 * likely hide target), and those pages have no .drilldown-filters at all,
+	 * so hiding must not be gated on the sidebar being found.
+	 *
+	 * @param {HTMLElement} resultsEl
+	 * @param {Array.<string>} hiddenTables
+	 */
+	function hideConfiguredTabs( resultsEl, hiddenTables ) {
+		var spContent = getSpContent( resultsEl );
+		var tabsEl = spContent.querySelector( '#drilldown-tables-tabs-wrapper' );
+		if ( !tabsEl ) { return; }
+
+		if ( hiddenTables && hiddenTables.length ) {
+			var tabItems = tabsEl.querySelectorAll( 'li.tableName' );
+			var j, tabLink, tabItem;
+			for ( j = 0; j < tabItems.length; j++ ) {
+				tabItem = tabItems[ j ];
+				tabLink = tabItem.querySelector( 'a' );
+				if ( tabLink && hiddenTables.indexOf( tableNameFromTabHref( tabLink.getAttribute( 'href' ) || '' ) ) !== -1 ) {
+					tabItem.parentNode.removeChild( tabItem );
+				}
+			}
+			// No tables left to choose between: drop the whole tabs bar.
+			if ( tabsEl.querySelectorAll( 'li.tableName' ).length === 0 ) {
+				tabsEl.parentNode.removeChild( tabsEl );
+				return;
+			}
+		}
+
+		// An explicit 'visible' value is required to override
+		// Hooks::hiddenTabsCss's stylesheet rule — setting '' merely clears
+		// the inline declaration, leaving the stylesheet rule (still) in
+		// effect and the bar permanently hidden.
+		tabsEl.style.visibility = 'visible';
+	}
+
 	function applyFlexLayout( filtersEl, resultsEl, contentEl ) {
 		if ( !contentEl ) {
 			mw.log.warn( 'SaintapediaDrilldown: content element not found; sidebar layout skipped.' );
 			return null;
 		}
 
-		// The shared parent of both tabs and filters is mw-spcontent (inside resultsEl).
-		// Fall back to resultsEl itself if mw-spcontent is absent.
-		var spContent = resultsEl.querySelector( '.mw-spcontent' ) || resultsEl;
+		var spContent = getSpContent( resultsEl );
 
-		// Hoist the table-tabs wrapper to the top of spContent so it stays full-width.
-		// Classes enable pill CSS (no ID selectors) and single-table label hide.
+		// Hoist the table-tabs wrapper to the top of spContent so it stays
+		// full-width. Any hidden tabs were already removed by
+		// hideConfiguredTabs before this runs. Classes enable pill CSS
+		// (no ID selectors) and single-table label hide.
 		var tabsEl = spContent.querySelector( '#drilldown-tables-tabs-wrapper' );
 		if ( tabsEl ) {
 			// The following CSS classes are used here:
@@ -590,6 +668,12 @@
 		// icons are fixed even if the filter sidebar is absent from the DOM.
 		replaceFilterXImages();
 
+		// Also before the filtersEl guard: Cargo prints the tabs wrapper even on
+		// tables with no filterable fields (no .drilldown-filters at all), and
+		// those are a likely hide target — tab hiding must not depend on the
+		// sidebar being found.
+		hideConfiguredTabs( resultsEl, cfg.hiddenTables );
+
 		if ( !filtersEl ) {
 			mw.log.warn( 'SaintapediaDrilldown: .drilldown-filters not found; layout skipped.' );
 			return;
@@ -652,7 +736,8 @@
 			getActiveFilters:        getActiveFilters,
 			buildRemoveSearch:       buildRemoveSearch,
 			buildRemoveFamilySearch: buildRemoveFamilySearch,
-			buildClearSearch:        buildClearSearch
+			buildClearSearch:        buildClearSearch,
+			tableNameFromTabHref:    tableNameFromTabHref
 		};
 	}
 

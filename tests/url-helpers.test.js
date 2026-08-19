@@ -38,8 +38,10 @@ global.document = {
 	}
 };
 
-const { getActiveFilters, buildRemoveSearch, buildRemoveFamilySearch, buildClearSearch } =
-	require( '../modules/ext.SaintapediaDrilldown.js' );
+const {
+	getActiveFilters, buildRemoveSearch, buildRemoveFamilySearch, buildClearSearch,
+	tableNameFromTabHref
+} = require( '../modules/ext.SaintapediaDrilldown.js' );
 
 /* ---- getActiveFilters ------------------------------------------------- */
 
@@ -223,4 +225,38 @@ test( 'getActiveFilters: out-of-order Date[1]/Date[0] still shows lower → uppe
 	const filters = getActiveFilters( '?Date%5B1%5D=2021&Date%5B0%5D=2020' );
 	assert.equal( filters.length, 1 );
 	assert.equal( filters[ 0 ].value, '2020 → 2021', 'lower bound must appear first' );
+} );
+
+/* ---- tableNameFromTabHref (table-tab hiding) --------------------------- */
+
+test( 'tableNameFromTabHref: short-URL path form', function () {
+	assert.equal(
+		tableNameFromTabHref( '/wiki/Special:Drilldown/Saints' ),
+		'Saints'
+	);
+} );
+
+test( 'tableNameFromTabHref: index.php?title= form', function () {
+	assert.equal(
+		tableNameFromTabHref( '/w/index.php?title=Special:Drilldown/Miracles' ),
+		'Miracles'
+	);
+} );
+
+test( 'tableNameFromTabHref: ignores trailing query params (e.g. _single)', function () {
+	assert.equal(
+		tableNameFromTabHref( '/wiki/Special:Drilldown/Saints?_single' ),
+		'Saints'
+	);
+	assert.equal(
+		tableNameFromTabHref( '/w/index.php?title=Special:Drilldown/Saints&_single=1' ),
+		'Saints'
+	);
+} );
+
+test( 'tableNameFromTabHref: decodes percent-encoded table names', function () {
+	assert.equal(
+		tableNameFromTabHref( '/wiki/Special:Drilldown/Roman%20Martyrs' ),
+		'Roman Martyrs'
+	);
 } );

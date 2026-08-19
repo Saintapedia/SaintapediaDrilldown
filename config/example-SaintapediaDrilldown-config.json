@@ -9,6 +9,7 @@
 	"largeHeadings": true,
 	"mobileBreakpoint": 720,
 	"theme": "soft",
+	"hiddenTableCategory": "",
 	"themeVars": {
 		"stickyTop": "3.5em",
 		"radius": "10px"
