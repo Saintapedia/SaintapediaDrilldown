@@ -123,6 +123,7 @@ Create or edit `MediaWiki:SaintapediaDrilldown-config` with a JSON object. Examp
 | `mobileBreakpoint` | int | 320–1600 px |
 | `theme` | string | `default`, `soft`, or `compact` |
 | `themeVars` | object | Optional CSS tokens: `gap`, `radius`, `filterBg`, `filterBorder`, `chipBg`, `chipBorder`, `chipText`, `toggleBg`, `toggleText`, `activeBarBg`, `stickyTop` |
+| `hiddenTableCategory` | string | Category name (no `Category:` prefix); tables whose `#cargo_declare` template is in it are hidden from the table-chooser tabs. Empty disables. |
 
 A sample file ships at `config/example-SaintapediaDrilldown-config.json`.
 
@@ -246,6 +247,29 @@ $wgSaintapediaDrilldownTheme = 'soft';
 | `string` | `SaintapediaDrilldown-config` |
 
 MediaWiki-namespace page title (without the `MediaWiki:` prefix) that holds JSON overrides. Set to `''` to ignore wiki config.
+
+---
+
+### `$wgSaintapediaDrilldownHiddenTableCategory`
+
+| Type | Default |
+|------|---------|
+| `string` | `''` (disabled) |
+
+Hides specific Cargo tables from the Special:Drilldown table-chooser tabs. Cargo has no built-in flag for this, so it works by convention: put the table's `#cargo_declare` template page in a category, and name that category here (without the `Category:` prefix). Any Cargo table whose declaring template belongs to that category is dropped from the tabs bar; everything else about the table (querying, storage, `Special:Drilldown/TableName` itself) is unaffected — only its tab is hidden.
+
+```php
+$wgSaintapediaDrilldownHiddenTableCategory = 'Hidden from drilldown tabs';
+```
+
+Then, in the template that declares the table (e.g. `Template:Saints table`):
+
+```wikitext
+{{#cargo_declare: _table=Saints | ... }}
+[[Category:Hidden from drilldown tabs]]
+```
+
+Resolution is cached for 5 minutes per category name, same as other server-computed values in this extension.
 
 ---
 

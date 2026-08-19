@@ -14,8 +14,11 @@ use CargoUtils;
 use ExtensionRegistry;
 use MediaWiki\Hook\BeforePageDisplayHook;
 use MediaWiki\Logger\LoggerFactory;
+use MediaWiki\MediaWikiServices;
 
 class Hooks implements BeforePageDisplayHook {
+
+	private const HIDDEN_TABLES_CACHE_TTL = 300;
 
 	/**
 	 * @param \OutputPage $out
@@ -63,6 +66,7 @@ class Hooks implements BeforePageDisplayHook {
 			'saintapediaDrilldownLargeHeadings' => $cfg['largeHeadings'],
 			'saintapediaDrilldownMobileBreakpoint' => $mobileBreak,
 			'saintapediaDrilldownTheme' => $cfg['theme'],
+			'saintapediaDrilldownHiddenTables' => $this->getHiddenTables( $cfg['hiddenTableCategory'] ),
 		] );
 
 		// Styles loaded render-blocking to avoid a style pop when JS applies the flex layout.
@@ -131,6 +135,57 @@ class Hooks implements BeforePageDisplayHook {
 		unset( $params['format'], $params['formatBy'], $params['title'] );
 		$out->redirect( $title->getLocalURL( $params ) );
 		return true;
+	}
+
+	/**
+	 * Names of Cargo tables whose declaring template (the page that calls
+	 * #cargo_declare) is in $categoryName. Those tables' tabs are stripped
+	 * from the Special:Drilldown table chooser client-side.
+	 *
+	 * Cargo has no built-in "hide from drilldown" flag, so this is our own
+	 * convention: an editor puts the table's declaring template in a
+	 * category, and we cross-reference Cargo's own table→template mapping
+	 * (page_props: CargoTableName) against that category's membership.
+	 * Cached briefly since it costs one query per known Cargo table.
+	 *
+	 * @param string $categoryName Empty string disables the feature.
+	 * @return string[]
+	 */
+	private function getHiddenTables( string $categoryName ): array {
+		if ( $categoryName === '' ) {
+			return [];
+		}
+
+		$categoryTitle = \Title::makeTitleSafe( NS_CATEGORY, $categoryName );
+		if ( $categoryTitle === null ) {
+			return [];
+		}
+
+		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
+		$key = $cache->makeKey( 'saintapediadrilldown-hidden-tables', 1, $categoryTitle->getDBkey() );
+
+		return $cache->getWithSetCallback(
+			$key,
+			self::HIDDEN_TABLES_CACHE_TTL,
+			function () use ( $categoryTitle ) {
+				$targetCat = $categoryTitle->getPrefixedDBkey();
+				$hidden = [];
+				foreach ( CargoUtils::getTables() as $tableName ) {
+					$templatePageId = CargoUtils::getTemplateIDForDBTable( $tableName );
+					if ( !$templatePageId ) {
+						continue;
+					}
+					$templateTitle = \Title::newFromID( $templatePageId );
+					if ( $templateTitle === null ) {
+						continue;
+					}
+					if ( array_key_exists( $targetCat, $templateTitle->getParentCategories() ) ) {
+						$hidden[] = $tableName;
+					}
+				}
+				return $hidden;
+			}
+		);
 	}
 
 	/**

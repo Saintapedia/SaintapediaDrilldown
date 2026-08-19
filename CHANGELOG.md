@@ -3,6 +3,17 @@
 All notable changes are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.6.3] — 2026-08-19
+
+### Added
+
+- **Hide tables from the drilldown tabs** — new `$wgSaintapediaDrilldownHiddenTableCategory`
+  / wiki-config `hiddenTableCategory`. Put a Cargo table's `#cargo_declare`
+  template page in the named category and its tab is dropped from the
+  Special:Drilldown table chooser (client-side, before it's hoisted/styled).
+  Disabled by default. Only affects tab visibility — the table itself,
+  its data, and direct browsing to `Special:Drilldown/TableName` are untouched.
+
 ## [0.6.2] — 2026-07-18
 
 ### Changed

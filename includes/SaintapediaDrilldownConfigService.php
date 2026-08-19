@@ -90,7 +90,8 @@ class SaintapediaDrilldownConfigService {
 	 *   largeHeadings:bool,
 	 *   mobileBreakpoint:int,
 	 *   theme:string,
-	 *   themeVars:array<string,string>
+	 *   themeVars:array<string,string>,
+	 *   hiddenTableCategory:string
 	 * }
 	 */
 	public function getConfig( IContextSource $context ): array {
@@ -112,6 +113,7 @@ class SaintapediaDrilldownConfigService {
 		$largeHeadings = (bool)$main->get( 'SaintapediaDrilldownLargeHeadings' );
 		$mobileBreak = (int)$main->get( 'SaintapediaDrilldownMobileBreakpoint' );
 		$theme = (string)$main->get( 'SaintapediaDrilldownTheme' );
+		$hiddenTableCategory = trim( (string)$main->get( 'SaintapediaDrilldownHiddenTableCategory' ) );
 
 		if ( is_array( $wiki ) ) {
 			if ( array_key_exists( 'enabled', $wiki ) ) {
@@ -146,6 +148,9 @@ class SaintapediaDrilldownConfigService {
 			}
 			if ( isset( $wiki['theme'] ) && is_string( $wiki['theme'] ) && $wiki['theme'] !== '' ) {
 				$theme = $wiki['theme'];
+			}
+			if ( array_key_exists( 'hiddenTableCategory', $wiki ) && is_string( $wiki['hiddenTableCategory'] ) ) {
+				$hiddenTableCategory = trim( $wiki['hiddenTableCategory'] );
 			}
 		}
 
@@ -183,6 +188,7 @@ class SaintapediaDrilldownConfigService {
 			'mobileBreakpoint' => $mobileBreak,
 			'theme' => $theme,
 			'themeVars' => $themeVars,
+			'hiddenTableCategory' => $hiddenTableCategory,
 		];
 
 		return $this->resolvedConfig;

@@ -1,6 +1,6 @@
 {
 	"name": "SaintapediaDrilldown",
-	"version": "0.6.2",
+	"version": "0.6.3",
 	"author": [ "Tom O'Neill", "Saintapedia contributors" ],
 	"url": "https://www.mediawiki.org/wiki/Extension:SaintapediaDrilldown",
 	"descriptionmsg": "saintapediadrilldown-desc",
@@ -96,6 +96,10 @@
 		"SaintapediaDrilldownConfigPage": {
 			"value": "SaintapediaDrilldown-config",
 			"description": "MediaWiki namespace page (without NS prefix) holding JSON UX overrides. Empty string disables wiki config."
+		},
+		"SaintapediaDrilldownHiddenTableCategory": {
+			"value": "",
+			"description": "Category name (without Category: prefix). Cargo tables whose #cargo_declare template page is in this category are omitted from the Special:Drilldown table-chooser tabs. Empty string disables the feature. Overridable via wiki config."
 		}
 	},
 	"manifest_version": 2
