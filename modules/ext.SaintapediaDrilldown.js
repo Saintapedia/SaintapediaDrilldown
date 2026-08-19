@@ -308,13 +308,17 @@
 				tabsEl.parentNode.removeChild( tabsEl );
 				return;
 			}
-		}
 
-		// An explicit 'visible' value is required to override
-		// Hooks::hiddenTabsCss's stylesheet rule — setting '' merely clears
-		// the inline declaration, leaving the stylesheet rule (still) in
-		// effect and the bar permanently hidden.
-		tabsEl.style.visibility = 'visible';
+			// An explicit 'visible' value is required to override
+			// Hooks::hiddenTabsCss's stylesheet rule — setting '' merely clears
+			// the inline declaration, leaving the stylesheet rule (still) in
+			// effect and the bar permanently hidden. Scoped to this branch
+			// (hiddenTables configured) since that's the only case where
+			// Hooks::hiddenTabsCss emits that rule in the first place — doing
+			// this unconditionally would clobber unrelated site CSS that hides
+			// the wrapper for its own reasons.
+			tabsEl.style.visibility = 'visible';
+		}
 	}
 
 	function applyFlexLayout( filtersEl, resultsEl, contentEl ) {

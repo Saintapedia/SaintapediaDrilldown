@@ -140,6 +140,17 @@ class Hooks implements BeforePageDisplayHook {
 			}
 			$params = $out->getRequest()->getQueryValues();
 			unset( $params['title'] );
+			// Validate formatBy against the table we're redirecting to, not the
+			// (hidden, table-less) one the request arrived with — otherwise an
+			// invalid formatBy survives this redirect and guardCalendarFormat
+			// has to fire again on the new URL, costing a second redirect.
+			if (
+				( $params['format'] ?? '' ) === 'calendar' &&
+				( $params['formatBy'] ?? '' ) !== '' &&
+				!$this->isValidFormatByField( $tableName, $params['formatBy'] )
+			) {
+				unset( $params['format'], $params['formatBy'] );
+			}
 			$out->redirect( \SpecialPage::getTitleFor( 'Drilldown', $tableName )->getLocalURL( $params ) );
 			return true;
 		}
@@ -178,21 +189,7 @@ class Hooks implements BeforePageDisplayHook {
 			return false;
 		}
 
-		try {
-			$tableSchemas = CargoUtils::getTableSchemas( [ $tableName ] );
-		} catch ( \Throwable $e ) {
-			// Cargo API unavailable or changed; let Cargo handle it.
-			return false;
-		}
-
-		if ( !isset( $tableSchemas[$tableName] ) ) {
-			// Table unknown to Cargo; let Cargo render its own error.
-			return false;
-		}
-
-		$fields = $tableSchemas[$tableName]->mFieldDescriptions ?? [];
-		if ( isset( $fields[$formatBy] ) ) {
-			// Field is valid; nothing to do.
+		if ( $this->isValidFormatByField( $tableName, $formatBy ) ) {
 			return false;
 		}
 
@@ -203,6 +200,31 @@ class Hooks implements BeforePageDisplayHook {
 		unset( $params['format'], $params['formatBy'], $params['title'] );
 		$out->redirect( $title->getLocalURL( $params ) );
 		return true;
+	}
+
+	/**
+	 * Whether $formatBy is a real field on $tableName, per Cargo's schema.
+	 * Cargo-API failure or an unknown table are treated as "valid" (i.e. not
+	 * our problem to guard against) so callers leave format/formatBy alone
+	 * and let Cargo render its own error.
+	 *
+	 * @param string $tableName
+	 * @param string $formatBy
+	 * @return bool
+	 */
+	private function isValidFormatByField( string $tableName, string $formatBy ): bool {
+		try {
+			$tableSchemas = CargoUtils::getTableSchemas( [ $tableName ] );
+		} catch ( \Throwable $e ) {
+			return true;
+		}
+
+		if ( !isset( $tableSchemas[$tableName] ) ) {
+			return true;
+		}
+
+		$fields = $tableSchemas[$tableName]->mFieldDescriptions ?? [];
+		return isset( $fields[$formatBy] );
 	}
 
 	/**
@@ -270,19 +292,18 @@ class Hooks implements BeforePageDisplayHook {
 			return [];
 		}
 
-		// One query: every Cargo table's declaring-template page ID, in bulk
-		// (CargoUtils only offers this per-table, which would be N+1 here).
-		$res = CargoUtils::getMainDBForRead()->newSelectQueryBuilder()
-			->select( [ 'pp_page', 'pp_value' ] )
-			->from( 'page_props' )
-			->where( [ 'pp_propname' => 'CargoTableName' ] )
-			->caller( __METHOD__ )
-			->fetchResultSet();
+		// Bulk table-name => [declaring-template page IDs] mapping, via Cargo's
+		// own helper (keeps us tracking Cargo's page_props convention instead
+		// of duplicating it).
+		$pagesPerTable = CargoUtils::getAllPageProps( 'CargoTableName' );
 
 		$hidden = [];
-		foreach ( $res as $row ) {
-			if ( isset( $memberPageIds[ (int)$row->pp_page ] ) ) {
-				$hidden[] = (string)$row->pp_value;
+		foreach ( $pagesPerTable as $tableName => $pageIds ) {
+			foreach ( $pageIds as $pageId ) {
+				if ( isset( $memberPageIds[ (int)$pageId ] ) ) {
+					$hidden[] = (string)$tableName;
+					break;
+				}
 			}
 		}
 		return $hidden;
