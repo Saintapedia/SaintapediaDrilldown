@@ -310,9 +310,11 @@
 			}
 		}
 
-		// Inline style always wins over the stylesheet rule regardless of
-		// specificity, so this reliably undoes Hooks::hiddenTabsCss.
-		tabsEl.style.visibility = '';
+		// An explicit 'visible' value is required to override
+		// Hooks::hiddenTabsCss's stylesheet rule — setting '' merely clears
+		// the inline declaration, leaving the stylesheet rule (still) in
+		// effect and the bar permanently hidden.
+		tabsEl.style.visibility = 'visible';
 	}
 
 	function applyFlexLayout( filtersEl, resultsEl, contentEl ) {
