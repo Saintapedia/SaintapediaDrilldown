@@ -15,10 +15,62 @@ use ExtensionRegistry;
 use MediaWiki\Hook\BeforePageDisplayHook;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\SpecialPage\Hook\SpecialPageBeforeExecuteHook;
 
-class Hooks implements BeforePageDisplayHook {
+class Hooks implements BeforePageDisplayHook, SpecialPageBeforeExecuteHook {
 
 	private const HIDDEN_TABLES_CACHE_TTL = 300;
+
+	/**
+	 * Both guards below must run here, not in onBeforePageDisplay: Cargo's own
+	 * Special:Drilldown execute() — which throws a Cargo DB error on an
+	 * invalid formatBy, and which renders a hidden default table's data
+	 * unfiltered — has already run by the time BeforePageDisplay fires.
+	 * Returning false here skips SpecialPage::execute() entirely (see
+	 * SpecialPage::run()), so a queued redirect actually pre-empts Cargo
+	 * instead of arriving one render too late.
+	 *
+	 * @param \SpecialPage $special
+	 * @param string|null $subPage
+	 * @return bool
+	 */
+	public function onSpecialPageBeforeExecute( $special, $subPage ): bool {
+		if ( $special->getName() !== 'Drilldown' ) {
+			return true;
+		}
+		if ( !ExtensionRegistry::getInstance()->isLoaded( 'Cargo' ) ) {
+			return true;
+		}
+
+		$tableName = (string)( $subPage ?? '' );
+
+		// Redirect away from calendar URLs whose formatBy field is absent from
+		// the current table, preventing a Cargo DB error in
+		// CargoDrilldownPage.php. Runs before the enabled check — this is a
+		// bug fix, not a UI feature. Cargo bug; guard lives here until fixed
+		// upstream.
+		if ( $this->guardCalendarFormat( $special, $tableName ) ) {
+			return false;
+		}
+
+		$configService = new SaintapediaDrilldownConfigService();
+		$cfg = $configService->getConfig( $special->getOutput() );
+
+		if ( !$cfg['enabled'] ) {
+			return true;
+		}
+
+		$hiddenTables = $this->getHiddenTables( $cfg['hiddenTableCategory'] );
+
+		// Cargo defaults a bare Special:Drilldown request to its first table;
+		// if that table is hidden, its tab disappears but its data still loads.
+		// Redirect to the first non-hidden table so "hidden" is actually hidden.
+		if ( $this->guardHiddenDefaultTable( $special, $tableName, $hiddenTables ) ) {
+			return false;
+		}
+
+		return true;
+	}
 
 	/**
 	 * @param \OutputPage $out
@@ -37,11 +89,9 @@ class Hooks implements BeforePageDisplayHook {
 			return;
 		}
 
-		// Redirect away from calendar URLs whose formatBy field is absent from
-		// the current table, preventing a PHP Warning in CargoDrilldownPage.php.
-		// Runs before the enabled check — this is a bug fix, not a UI feature.
-		// Cargo bug; guard lives here until fixed upstream.
-		if ( $this->guardCalendarFormat( $out, $title ) ) {
+		// A redirect was already queued in onSpecialPageBeforeExecute (hidden
+		// default table, or an invalid calendar formatBy); no UI to set up.
+		if ( $out->getRedirect() !== '' ) {
 			return;
 		}
 
@@ -53,13 +103,6 @@ class Hooks implements BeforePageDisplayHook {
 		}
 
 		$hiddenTables = $this->getHiddenTables( $cfg['hiddenTableCategory'] );
-
-		// Cargo defaults a bare Special:Drilldown request to its first table;
-		// if that table is hidden, its tab disappears but its data still loads.
-		// Redirect to the first non-hidden table so "hidden" is actually hidden.
-		if ( $this->guardHiddenDefaultTable( $out, $title, $hiddenTables ) ) {
-			return;
-		}
 
 		$sidebarWidth = $cfg['sidebarWidth'];
 		$mobileBreak = $cfg['mobileBreakpoint'];
@@ -105,20 +148,19 @@ class Hooks implements BeforePageDisplayHook {
 	 *
 	 * Returns true when a redirect has been queued (caller should return early).
 	 *
-	 * @param \OutputPage $out
-	 * @param \Title $title Already-verified Drilldown special-page title.
+	 * @param \SpecialPage $special Already-verified Drilldown special page.
+	 * @param string $tableName Subpage table name; empty for a bare request.
 	 * @param string[] $hiddenTables
 	 * @return bool
 	 */
-	private function guardHiddenDefaultTable( \OutputPage $out, \Title $title, array $hiddenTables ): bool {
+	private function guardHiddenDefaultTable( \SpecialPage $special, string $tableName, array $hiddenTables ): bool {
 		if ( !$hiddenTables ) {
 			return false;
 		}
 
-		// Title text is "Drilldown/TableName"; a non-empty subpage means the
-		// user (or a link) explicitly picked a table, so leave it alone.
-		$parts = explode( '/', $title->getText(), 2 );
-		if ( ( $parts[1] ?? '' ) !== '' ) {
+		// A non-empty subpage means the user (or a link) explicitly picked a
+		// table, so leave it alone.
+		if ( $tableName !== '' ) {
 			return false;
 		}
 
@@ -134,11 +176,11 @@ class Hooks implements BeforePageDisplayHook {
 			return false;
 		}
 
-		foreach ( $tableNames as $tableName ) {
-			if ( in_array( $tableName, $hiddenTables, true ) ) {
+		foreach ( $tableNames as $candidate ) {
+			if ( in_array( $candidate, $hiddenTables, true ) ) {
 				continue;
 			}
-			$params = $out->getRequest()->getQueryValues();
+			$params = $special->getRequest()->getQueryValues();
 			unset( $params['title'] );
 			// Validate formatBy against the table we're redirecting to, not the
 			// (hidden, table-less) one the request arrived with — otherwise an
@@ -147,11 +189,13 @@ class Hooks implements BeforePageDisplayHook {
 			if (
 				( $params['format'] ?? '' ) === 'calendar' &&
 				( $params['formatBy'] ?? '' ) !== '' &&
-				!$this->isValidFormatByField( $tableName, $params['formatBy'] )
+				!$this->isValidFormatByField( $candidate, $params['formatBy'] )
 			) {
 				unset( $params['format'], $params['formatBy'] );
 			}
-			$out->redirect( \SpecialPage::getTitleFor( 'Drilldown', $tableName )->getLocalURL( $params ) );
+			$special->getOutput()->redirect(
+				\SpecialPage::getTitleFor( 'Drilldown', $candidate )->getLocalURL( $params )
+			);
 			return true;
 		}
 
@@ -161,18 +205,18 @@ class Hooks implements BeforePageDisplayHook {
 
 	/**
 	 * Guard against a Cargo bug (CargoDrilldownPage.php:2212) where accessing
-	 * a formatBy field that does not exist on the drilldown table causes a PHP
-	 * Warning. When the field is absent we redirect to the same URL without
-	 * the format/formatBy params so the page renders safely.
+	 * a formatBy field that does not exist on the drilldown table causes a
+	 * Cargo DB error. When the field is absent we redirect to the same URL
+	 * without the format/formatBy params so the page renders safely.
 	 *
 	 * Returns true when a redirect has been queued (caller should return early).
 	 *
-	 * @param \OutputPage $out
-	 * @param \Title $title Already-verified Drilldown special-page title.
+	 * @param \SpecialPage $special Already-verified Drilldown special page.
+	 * @param string $tableName Subpage table name; empty for a bare request.
 	 * @return bool
 	 */
-	private function guardCalendarFormat( \OutputPage $out, \Title $title ): bool {
-		$request = $out->getRequest();
+	private function guardCalendarFormat( \SpecialPage $special, string $tableName ): bool {
+		$request = $special->getRequest();
 
 		if ( $request->getText( 'format' ) !== 'calendar' ) {
 			return false;
@@ -181,10 +225,6 @@ class Hooks implements BeforePageDisplayHook {
 		if ( $formatBy === '' ) {
 			return false;
 		}
-
-		// Title text is "Drilldown/TableName"; extract the table part.
-		$parts     = explode( '/', $title->getText(), 2 );
-		$tableName = $parts[1] ?? '';
 		if ( $tableName === '' ) {
 			return false;
 		}
@@ -198,7 +238,7 @@ class Hooks implements BeforePageDisplayHook {
 		// hook returns — it does not fire immediately.
 		$params = $request->getQueryValues();
 		unset( $params['format'], $params['formatBy'], $params['title'] );
-		$out->redirect( $title->getLocalURL( $params ) );
+		$special->getOutput()->redirect( $special->getPageTitle( $tableName )->getLocalURL( $params ) );
 		return true;
 	}
 
