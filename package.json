@@ -9,7 +9,7 @@
 		"unit": "node --test"
 	},
 	"devDependencies": {
-		"eslint-config-wikimedia": "^0.32.4",
+		"eslint-config-wikimedia": "^0.32.5",
 		"grunt": "^1.6.0",
 		"grunt-banana-checker": "^0.13.0",
 		"grunt-eslint": "^24.0.0",
