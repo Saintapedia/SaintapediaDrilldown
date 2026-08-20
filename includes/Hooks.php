@@ -23,9 +23,10 @@ class Hooks implements BeforePageDisplayHook, SpecialPageBeforeExecuteHook {
 
 	/**
 	 * Both guards below must run here, not in onBeforePageDisplay: Cargo's own
-	 * Special:Drilldown execute() — which throws a Cargo DB error on an
-	 * invalid formatBy, and which renders a hidden default table's data
-	 * unfiltered — has already run by the time BeforePageDisplay fires.
+	 * Special:Drilldown execute() — which raises an "Undefined array key"
+	 * error on an invalid formatBy, and which renders a hidden default
+	 * table's data unfiltered — has already run by the time
+	 * BeforePageDisplay fires.
 	 * Returning false here skips SpecialPage::execute() entirely (see
 	 * SpecialPage::run()), so a queued redirect actually pre-empts Cargo
 	 * instead of arriving one render too late.
@@ -45,7 +46,7 @@ class Hooks implements BeforePageDisplayHook, SpecialPageBeforeExecuteHook {
 		$tableName = (string)( $subPage ?? '' );
 
 		// Redirect away from calendar URLs whose formatBy field is absent from
-		// the current table, preventing a Cargo DB error in
+		// the current table, preventing an "Undefined array key" error in
 		// CargoDrilldownPage.php. Runs before the enabled check — this is a
 		// bug fix, not a UI feature. Cargo bug; guard lives here until fixed
 		// upstream.
@@ -204,10 +205,13 @@ class Hooks implements BeforePageDisplayHook, SpecialPageBeforeExecuteHook {
 	}
 
 	/**
-	 * Guard against a Cargo bug (CargoDrilldownPage.php:2212) where accessing
-	 * a formatBy field that does not exist on the drilldown table causes a
-	 * Cargo DB error. When the field is absent we redirect to the same URL
-	 * without the format/formatBy params so the page renders safely.
+	 * Guard against a Cargo bug (CargoDrilldownPage.php:2212) where
+	 * `$this->calendarFields[$this->formatBy]` is indexed without an isset()
+	 * check. calendarFields is per-table while formatBy comes from the query
+	 * string, so a formatBy that is not a calendar field on the current table
+	 * raises "Undefined array key" (fatal where warnings are escalated).
+	 * When the field is absent we redirect to the same URL without the
+	 * format/formatBy params so the page renders safely.
 	 *
 	 * Returns true when a redirect has been queued (caller should return early).
 	 *
