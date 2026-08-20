@@ -1,11 +1,12 @@
 {{Extension
 | status          = stable
 | hook1           = BeforePageDisplay
+| hook2           = SpecialPageBeforeExecute
 | description     = Modern sidebar layout, filter chips, collapsible sections, and mobile toggle for Cargo Special:Drilldown
 | author          = [[User:PhotographerTom|Tom O'Neill]], Saintapedia contributors
 | maintainer      = [[User:PhotographerTom|Tom O'Neill]]
-| version         = 0.6.2
-| update          = 2026-07-18
+| version         = 0.6.3
+| update          = 2026-08-19
 | mediawiki       = 1.39+
 | php             = 7.4+
 | needs-updatephp = No
@@ -27,8 +28,9 @@
 * $wgSaintapediaDrilldownMobileBreakpoint
 * $wgSaintapediaDrilldownTheme
 * $wgSaintapediaDrilldownConfigPage
+* $wgSaintapediaDrilldownHiddenTableCategory
 }}
-The '''SaintapediaDrilldown''' extension improves the faceted-search UI of {{ll|Extension:Cargo|Cargo}}'s '''Special:Drilldown''' with a filter sidebar, active-filter chips, sticky filters, collapsible filter sections, large headings, pill-style table chooser, theme presets, and a mobile show/hide toggle. Layout and colours can be tuned from '''MediaWiki:SaintapediaDrilldown-config''' without redeploying. It works entirely through ResourceLoader JavaScript and scoped CSS — Cargo and MediaWiki core are not modified.
+The '''SaintapediaDrilldown''' extension improves the faceted-search UI of {{ll|Extension:Cargo|Cargo}}'s '''Special:Drilldown''' with a filter sidebar, active-filter chips, sticky filters, collapsible filter sections, large headings, pill-style table chooser, theme presets, and a mobile show/hide toggle. Layout and colours can be tuned from '''MediaWiki:SaintapediaDrilldown-config''' without redeploying. It works through ResourceLoader JavaScript, scoped CSS, and a small set of hook handlers — Cargo and MediaWiki core are not modified.
 
 If the extension cannot find Cargo's expected DOM structure, it exits early and Cargo's default layout is shown.
 
@@ -42,6 +44,7 @@ Developed for [https://saintapedia.org/ Saintapedia].
 * Collapsible filter sections (per-field headings; state remembered via <code>mw.storage</code>)
 * Large page and filter section headings (optional)
 * Pill-style table chooser when multiple Cargo tables are available
+* Optional category-based hiding of individual tables from the table chooser
 * Theme presets (<code>default</code>, <code>soft</code>, <code>compact</code>) and wiki JSON config
 * Collapsible filters below a configurable mobile breakpoint
 * Zero load on pages other than <code>Special:Drilldown</code>
@@ -96,6 +99,27 @@ No database updates are required. Restart PHP / clear object cache if ResourceLo
 : Theme preset: <code>default</code>, <code>soft</code>, or <code>compact</code>. Default: <code>default</code>.
 ; <code>$wgSaintapediaDrilldownConfigPage</code>
 : MediaWiki page title (no namespace prefix) for JSON overrides. Default: <code>SaintapediaDrilldown-config</code>. Set to empty string to disable.
+; <code>$wgSaintapediaDrilldownHiddenTableCategory</code>
+: Category name (without the <code>Category:</code> prefix) whose member templates' Cargo tables are hidden from the table-chooser tabs. Default: <code>''</code> (disabled). See [[#Hiding tables from the chooser|Hiding tables from the chooser]].
+
+=== Hiding tables from the chooser ===
+
+Cargo has no built-in "hide from drilldown" flag, so this works by convention: put the table's <code>#cargo_declare</code> template page into a category, then name that category in <code>$wgSaintapediaDrilldownHiddenTableCategory</code>.
+
+<syntaxhighlight lang="php">
+$wgSaintapediaDrilldownHiddenTableCategory = 'Hidden from drilldown tabs';
+</syntaxhighlight>
+
+Then, in the template that declares the table:
+
+<syntaxhighlight lang="wikitext">
+{{#cargo_declare: _table=Saints | ... }}
+[[Category:Hidden from drilldown tabs]]
+</syntaxhighlight>
+
+Any Cargo table whose declaring template belongs to that category is dropped from the tabs bar. '''This hides the tab only''' — querying, storage, and browsing <code>Special:Drilldown/TableName</code> directly are unaffected. The one exception: Cargo defaults a bare <code>Special:Drilldown</code> request to its first table, so if that table is hidden the extension redirects to the first non-hidden table instead.
+
+Resolution costs two queries total regardless of table count, cached 5 minutes per category name. While JavaScript removes the flagged tabs, the tabs bar is held <code>visibility:hidden</code> via inline CSS so a soon-to-be-removed tab never flashes on screen; if the module fails to load, the bar stays hidden rather than showing every table unfiltered.
 
 === Wiki config (JSON) ===
 
@@ -109,6 +133,7 @@ Create <code>MediaWiki:SaintapediaDrilldown-config</code>:
 "collapsibleSections": true,
 "sectionsStartCollapsed": false,
 "largeHeadings": true,
+"hiddenTableCategory": "Hidden from drilldown tabs",
 "themeVars": {
 "stickyTop": "3.5em"
 }

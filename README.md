@@ -279,14 +279,23 @@ Resolution costs two queries total (category membership, then one batch read of 
 
 ### PHP — `includes/Hooks.php` + `SaintapediaDrilldownConfigService`
 
-Implements `BeforePageDisplay`. On any `Special:Drilldown` or `Special:Drilldown/*` request it:
+Implements two hooks, in this order:
+
+**`SpecialPageBeforeExecute`** — runs *before* Cargo's `Special:Drilldown` executes, so it can redirect out of a bad request instead of cleaning up after one. Returning `false` aborts Cargo's `execute()` entirely. Two guards live here:
+
+1. **Invalid calendar `formatBy`** — Cargo raises a DB error if `formatBy` names a field the current table doesn't have. When the field is absent, the request is redirected to the same URL with `format`/`formatBy` stripped.
+2. **Hidden default table** — a bare `Special:Drilldown` (no subpage) is redirected to the first non-hidden table when Cargo's default would be a hidden one. If the incoming request also carries calendar params, `formatBy` is validated against the *destination* table so the redirect resolves in one hop.
+
+Both guards must run at this stage: `BeforePageDisplay` fires only after Cargo has already executed, by which point the DB error has been raised or the hidden table's data already rendered.
+
+**`BeforePageDisplay`** — UI setup only. On any `Special:Drilldown` or `Special:Drilldown/*` request it:
 
 1. Merges wiki JSON config with `$wg*` defaults (WAN-cached by page revid).
 2. Forwards layout options to the browser as `mw.config` values.
 3. Emits theme CSS custom properties and the mobile `@media` breakpoint inline.
 4. Queues the `ext.SaintapediaDrilldown` ResourceLoader module.
 
-The module is **only loaded on drilldown pages**, keeping its footprint zero on all other pages.
+It short-circuits when a guard above already queued a redirect (there is no page to decorate). The module is **only loaded on drilldown pages**, keeping its footprint zero on all other pages.
 
 ### JavaScript — `modules/ext.SaintapediaDrilldown.js`
 
