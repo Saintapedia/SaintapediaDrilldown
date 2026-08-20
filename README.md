@@ -283,10 +283,10 @@ Implements two hooks, in this order:
 
 **`SpecialPageBeforeExecute`** — runs *before* Cargo's `Special:Drilldown` executes, so it can redirect out of a bad request instead of cleaning up after one. Returning `false` aborts Cargo's `execute()` entirely. Two guards live here:
 
-1. **Invalid calendar `formatBy`** — Cargo raises a DB error if `formatBy` names a field the current table doesn't have. When the field is absent, the request is redirected to the same URL with `format`/`formatBy` stripped.
+1. **Invalid calendar `formatBy`** — Cargo indexes `$this->calendarFields[$this->formatBy]` without an `isset()` check ([`CargoDrilldownPage.php:2212`](https://github.com/wikimedia/mediawiki-extensions-Cargo/blob/master/drilldown/CargoDrilldownPage.php), Cargo 3.9.2). `calendarFields` is per-table while `formatBy` comes from the query string, so a `formatBy` that isn't a calendar field on the current table raises `Undefined array key` — fatal on wikis that escalate warnings. Cargo's own drilldown links propagate `format`/`formatBy` across table switches, so this is reachable by ordinary navigation, not just hand-edited URLs. When the field is absent, the request is redirected to the same URL with `format`/`formatBy` stripped. **This is a workaround for an upstream bug**, not a fix of it.
 2. **Hidden default table** — a bare `Special:Drilldown` (no subpage) is redirected to the first non-hidden table when Cargo's default would be a hidden one. If the incoming request also carries calendar params, `formatBy` is validated against the *destination* table so the redirect resolves in one hop.
 
-Both guards must run at this stage: `BeforePageDisplay` fires only after Cargo has already executed, by which point the DB error has been raised or the hidden table's data already rendered.
+Both guards must run at this stage: `BeforePageDisplay` fires from inside `OutputPage::output()`, which is only reached after `SpecialPage::run()` has already called Cargo's `execute()` — by which point the error has been raised or the hidden table's data already rendered. An earlier version of this guard lived in `BeforePageDisplay` and was verified on a live wiki to be incapable of preventing the error for exactly this reason.
 
 **`BeforePageDisplay`** — UI setup only. On any `Special:Drilldown` or `Special:Drilldown/*` request it:
 

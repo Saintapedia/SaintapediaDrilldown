@@ -30,10 +30,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Redirect guards moved to `SpecialPageBeforeExecute`** — live testing found
   both redirect guards ran too late in `BeforePageDisplay`, after Cargo's own
   `Special:Drilldown` execution: an invalid `formatBy` on a calendar view hit
-  a Cargo DB error (500) before the guard could strip it, and a hidden
-  default table's data rendered in full instead of redirecting away. Both
-  guards now run in `SpecialPageBeforeExecute`, which can abort Cargo's
-  `execute()` outright.
+  an "Undefined array key" error (500) before the guard could strip it, and
+  a hidden default table's data rendered in full instead of redirecting away.
+  Both guards now run in `SpecialPageBeforeExecute`, which can abort Cargo's
+  `execute()` outright. The upstream fault is an unguarded array access at
+  `CargoDrilldownPage.php:2212` (Cargo 3.9.2); this guard is a workaround
+  until that is fixed upstream.
 
 ## [0.6.2] — 2026-07-18
 
