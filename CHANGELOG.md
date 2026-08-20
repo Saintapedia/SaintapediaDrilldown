@@ -18,6 +18,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   CSS until JS removes the flagged tabs, avoiding a flash of the wrong tabs.
   Category→table resolution is two queries total, cached 5 minutes.
 
+### Fixed
+
+- **Hidden-tables follow-up fixes** — three issues found reviewing the above
+  feature: `hideConfiguredTabs()` no longer force-shows the tabs wrapper when
+  hiding is unconfigured (could override unrelated site CSS); table→template
+  resolution now uses Cargo's own `CargoUtils::getAllPageProps()` instead of
+  duplicating its `page_props` query by hand; and the hidden-default-table
+  redirect now validates `formatBy` against the table it redirects to, so an
+  invalid value on the fallback table doesn't trigger a second redirect.
+- **Redirect guards moved to `SpecialPageBeforeExecute`** — live testing found
+  both redirect guards ran too late in `BeforePageDisplay`, after Cargo's own
+  `Special:Drilldown` execution: an invalid `formatBy` on a calendar view hit
+  a Cargo DB error (500) before the guard could strip it, and a hidden
+  default table's data rendered in full instead of redirecting away. Both
+  guards now run in `SpecialPageBeforeExecute`, which can abort Cargo's
+  `execute()` outright.
+
 ## [0.6.2] — 2026-07-18
 
 ### Changed
