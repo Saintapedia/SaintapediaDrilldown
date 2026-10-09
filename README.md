@@ -373,4 +373,4 @@ When submitting a PR please:
 
 ## License
 
-[MIT](LICENSE)
+GPL-2.0-or-later. See [COPYING](COPYING).

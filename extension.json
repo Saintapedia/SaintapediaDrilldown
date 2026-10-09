@@ -4,7 +4,7 @@
 	"author": [ "Tom O'Neill", "Saintapedia contributors" ],
 	"url": "https://www.mediawiki.org/wiki/Extension:SaintapediaDrilldown",
 	"descriptionmsg": "saintapediadrilldown-desc",
-	"license-name": "MIT",
+	"license-name": "GPL-2.0-or-later",
 	"type": "other",
 	"requires": {
 		"MediaWiki": ">= 1.39.0"
