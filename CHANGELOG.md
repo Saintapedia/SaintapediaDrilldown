@@ -3,6 +3,13 @@
 All notable changes are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Changed
+
+- **Relicensed from MIT to GPL-2.0-or-later**, matching MediaWiki and the other
+  Saintapedia extensions. Releases up to 0.6.3 remain available under MIT.
+
 ## [0.6.3] — 2026-08-19
 
 ### Added

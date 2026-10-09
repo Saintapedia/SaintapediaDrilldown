@@ -10,7 +10,7 @@
 | mediawiki       = 1.39+
 | php             = 7.4+
 | needs-updatephp = No
-| license         = MIT
+| license         = GPL-2.0-or-later
 | download        = {{GithubDownload|Saintapedia|SaintapediaDrilldown}}
 | readme          = [https://github.com/Saintapedia/SaintapediaDrilldown/blob/main/README.md README]
 | changelog       = [https://github.com/Saintapedia/SaintapediaDrilldown/blob/main/CHANGELOG.md CHANGELOG]
